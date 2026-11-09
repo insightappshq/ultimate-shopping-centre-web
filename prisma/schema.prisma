@@ -1,0 +1,104 @@
+// Ultimate Shopping Centre — application data.
+// Authentication lives in Supabase Auth (auth.users); `Profile.id` is the
+// Supabase user id, so every row here is owned by an authenticated user.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Profile {
+  id       String  @id @db.Uuid
+  email    String? @unique
+  phone    String? @unique
+  fullName String? @map("full_name")
+  isDemo   Boolean @default(false) @map("is_demo")
+
+  // Preferred delivery location, used to price searches.
+  locationLabel String? @map("location_label")
+  latitude      Float?
+  longitude     Float?
+  pincode       String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  cartItems     CartItem[]
+  wishlistItems WishlistItem[]
+  searches      SearchHistory[]
+
+  @@map("profiles")
+}
+
+enum CartItemStatus {
+  PENDING
+  ORDERED
+
+  @@map("cart_item_status")
+}
+
+/// A listing the shopper intends to buy on a specific platform.
+/// Product fields are a snapshot at add time; prices are stored in paise.
+model CartItem {
+  id         String         @id @default(cuid())
+  userId     String         @map("user_id") @db.Uuid
+  platform   String
+  productId  String         @map("product_id")
+  name       String
+  brand      String?
+  imageUrl   String?        @map("image_url")
+  packSize   String?        @map("pack_size")
+  pricePaise Int            @map("price_paise")
+  mrpPaise   Int?           @map("mrp_paise")
+  deeplink   String?
+  quantity   Int            @default(1)
+  status     CartItemStatus @default(PENDING)
+  orderedAt  DateTime?      @map("ordered_at")
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, productId])
+  @@index([userId, status])
+  @@map("cart_items")
+}
+
+/// Saved for later. Price at save time lets us show drops on revisit.
+model WishlistItem {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id") @db.Uuid
+  platform   String
+  productId  String   @map("product_id")
+  name       String
+  brand      String?
+  imageUrl   String?  @map("image_url")
+  packSize   String?  @map("pack_size")
+  pricePaise Int      @map("price_paise")
+  mrpPaise   Int?     @map("mrp_paise")
+  deeplink   String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, platform, productId])
+  @@index([userId, createdAt])
+  @@map("wishlist_items")
+}
+
+model SearchHistory {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id") @db.Uuid
+  query     String
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user Profile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, query])
+  @@index([userId, createdAt])
+  @@map("search_history")
+}

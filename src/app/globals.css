@@ -1,0 +1,164 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * USC design tokens
+ * ------------------------------------------------------------------
+ * primary  – "USC Indigo": trustworthy, enterprise, high-contrast CTAs
+ * deal     – saffron accent for offers & best-price highlights
+ * success  – savings, in-stock, purchased
+ * warning  – low stock, partial results
+ * Neutrals carry a faint indigo tint so surfaces feel cohesive.
+ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-jakarta);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-surface: var(--surface);
+  --color-deal: var(--deal);
+  --color-deal-foreground: var(--deal-foreground);
+  --color-deal-subtle: var(--deal-subtle);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-subtle: var(--success-subtle);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  --shadow-card: 0 1px 2px oklch(0.25 0.05 270 / 0.04), 0 2px 8px oklch(0.25 0.05 270 / 0.04);
+  --shadow-elevated: 0 4px 12px oklch(0.25 0.05 270 / 0.06), 0 16px 40px oklch(0.25 0.05 270 / 0.08);
+}
+
+:root {
+  --radius: 0.75rem;
+  --background: oklch(0.985 0.004 270);
+  --surface: oklch(0.965 0.008 270);
+  --foreground: oklch(0.2 0.03 270);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.03 270);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.03 270);
+  --primary: oklch(0.47 0.2 268);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.02 270);
+  --secondary-foreground: oklch(0.32 0.12 268);
+  --muted: oklch(0.96 0.006 270);
+  --muted-foreground: oklch(0.5 0.025 270);
+  --accent: oklch(0.95 0.025 270);
+  --accent-foreground: oklch(0.32 0.12 268);
+  --destructive: oklch(0.58 0.22 27);
+  --border: oklch(0.91 0.012 270);
+  --input: oklch(0.89 0.014 270);
+  --ring: oklch(0.47 0.2 268 / 0.5);
+  --deal: oklch(0.74 0.16 62);
+  --deal-foreground: oklch(0.28 0.07 50);
+  --deal-subtle: oklch(0.96 0.045 75);
+  --success: oklch(0.56 0.14 155);
+  --success-foreground: oklch(0.99 0 0);
+  --success-subtle: oklch(0.96 0.04 155);
+  --warning: oklch(0.65 0.15 70);
+  --warning-subtle: oklch(0.97 0.05 85);
+  --chart-1: oklch(0.47 0.2 268);
+  --chart-2: oklch(0.74 0.16 62);
+  --chart-3: oklch(0.56 0.14 155);
+  --chart-4: oklch(0.6 0.15 300);
+  --chart-5: oklch(0.65 0.12 210);
+}
+
+.dark {
+  --background: oklch(0.17 0.02 270);
+  --surface: oklch(0.2 0.022 270);
+  --foreground: oklch(0.96 0.005 270);
+  --card: oklch(0.21 0.022 270);
+  --card-foreground: oklch(0.96 0.005 270);
+  --popover: oklch(0.22 0.022 270);
+  --popover-foreground: oklch(0.96 0.005 270);
+  --primary: oklch(0.68 0.16 268);
+  --primary-foreground: oklch(0.15 0.03 270);
+  --secondary: oklch(0.27 0.04 270);
+  --secondary-foreground: oklch(0.92 0.03 270);
+  --muted: oklch(0.25 0.02 270);
+  --muted-foreground: oklch(0.7 0.02 270);
+  --accent: oklch(0.28 0.04 270);
+  --accent-foreground: oklch(0.95 0.01 270);
+  --destructive: oklch(0.68 0.19 25);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.16 268 / 0.5);
+  --deal: oklch(0.78 0.15 65);
+  --deal-foreground: oklch(0.22 0.05 50);
+  --deal-subtle: oklch(0.3 0.06 65);
+  --success: oklch(0.7 0.14 155);
+  --success-foreground: oklch(0.16 0.03 155);
+  --success-subtle: oklch(0.28 0.05 155);
+  --warning: oklch(0.78 0.14 75);
+  --warning-subtle: oklch(0.3 0.06 75);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1, h2, h3, h4 {
+    @apply font-heading tracking-tight;
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
