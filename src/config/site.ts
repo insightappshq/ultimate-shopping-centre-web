@@ -4,7 +4,7 @@ export const siteConfig = {
   tagline: "Compare. Save. Shop smarter.",
   description:
     "Compare live prices across Blinkit, Zepto, Swiggy Instamart, BigBasket, JioMart, DMart and Amazon — and always check out at the best deal.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+  url: process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   supportEmail: "support@usc.app",
 } as const;
 
@@ -14,11 +14,11 @@ export const siteConfig = {
  */
 export const demoAccount = {
   enabled: process.env.NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS !== "false",
-  email: process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "demo@usc.app",
-  phone: process.env.NEXT_PUBLIC_DEMO_PHONE ?? "+919000000001",
-  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "Demo@12345",
+  email: process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@usc.app",
+  phone: process.env.NEXT_PUBLIC_DEMO_PHONE || "+919000000001",
+  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
   /** Configure as a Supabase test OTP so phone OTP works without an SMS provider. */
-  phoneOtp: process.env.NEXT_PUBLIC_DEMO_PHONE_OTP ?? "123456",
+  phoneOtp: process.env.NEXT_PUBLIC_DEMO_PHONE_OTP || "123456",
   fullName: "Demo Shopper",
 } as const;
 

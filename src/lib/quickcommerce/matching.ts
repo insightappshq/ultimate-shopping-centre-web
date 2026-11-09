@@ -1,5 +1,6 @@
 import type { PlatformId } from "@/config/platforms";
 import type { ComparisonRow, Offer, ProductGroup } from "./types";
+import { uniqueBy } from "@/lib/hash";
 import { quantityKey } from "./units";
 
 /**
@@ -71,7 +72,8 @@ export function matchAcrossPlatforms(
   const bestByPlatform = new Map<PlatformId, ComparisonRow>();
   const related: { offer: Offer; score: number }[] = [];
 
-  for (const offer of candidates) {
+  // Candidates may come from overlapping searches, so the same listing can repeat.
+  for (const offer of uniqueBy(candidates, (o) => o.listingId)) {
     if (offer.key === reference.key) continue;
     const score = similarity(reference, offer);
     if (score >= SIMILAR_THRESHOLD) {
@@ -121,7 +123,7 @@ const GROUP_THRESHOLD = 0.74;
 export function groupOffers(offers: Offer[]): ProductGroup[] {
   const groups: { seed: Offer; tokens: Set<string>; qty: string | null; offers: Offer[] }[] = [];
 
-  for (const offer of offers) {
+  for (const offer of uniqueBy(offers, (o) => o.listingId)) {
     const tokens = tokenSet(offer);
     const qty = quantityKey(offer.quantity);
     let target: (typeof groups)[number] | undefined;
@@ -159,7 +161,8 @@ function toProductGroup(seed: Offer, offers: Offer[]): ProductGroup {
   const name = sorted.map((o) => o.name).reduce((a, b) => (b.length < a.length ? b : a), seed.name);
 
   return {
-    id: best.key,
+    // Each listing joins exactly one group, so its listing id is a unique group id.
+    id: best.listingId,
     name,
     brand: seed.brand ?? sorted.find((o) => o.brand)?.brand ?? null,
     quantity: seed.quantity ?? sorted.find((o) => o.quantity)?.quantity ?? null,

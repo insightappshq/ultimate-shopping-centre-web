@@ -118,7 +118,7 @@ export async function SearchResults({ searchParams }: { searchParams: PageProps<
                         </li>
                       ))
                     : shaped.offers.map((offer) => (
-                        <li key={offer.key} className="flex">
+                        <li key={offer.listingId} className="flex">
                           <div className="w-full">
                             <OfferCard offer={offer} query={filters.q} state={cardState} />
                           </div>

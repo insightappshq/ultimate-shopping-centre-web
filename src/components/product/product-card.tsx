@@ -72,7 +72,7 @@ export function ProductGroupCard({
   state: CardState;
 }) {
   const { best } = group;
-  const others = group.offers.filter((o) => o.key !== best.key);
+  const others = group.offers.filter((o) => o.listingId !== best.listingId);
   const savings = group.offers.length > 1 ? group.highestPrice - best.price : 0;
 
   return (
@@ -110,7 +110,7 @@ export function ProductGroupCard({
         {others.length > 0 && (
           <ul className="space-y-1 rounded-lg bg-muted/60 p-2 text-xs">
             {others.slice(0, 2).map((offer) => (
-              <li key={offer.key} className="flex items-center justify-between gap-2">
+              <li key={offer.listingId} className="flex items-center justify-between gap-2">
                 <span className="flex min-w-0 items-center gap-1.5">
                   <PlatformLogo platform={offer.platform} size="xs" />
                   <span className="truncate text-muted-foreground">{PLATFORMS[offer.platform].shortName}</span>

@@ -20,7 +20,7 @@ interface Props {
 }
 
 function cheapestKey(rows: ComparisonRow[]): string | undefined {
-  return rows.find((row) => row.offer.available)?.offer.key;
+  return rows.find((row) => row.offer.available)?.offer.listingId;
 }
 
 function MatchBadge({ row, isReference }: { row: ComparisonRow; isReference: boolean }) {
@@ -63,11 +63,11 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
           <tbody className="divide-y">
             {rows.map((row) => {
               const { offer } = row;
-              const isBest = offer.key === bestKey;
+              const isBest = offer.listingId === bestKey;
               const isReference = offer.key === reference.key;
               const extra = isBest || !offer.available ? 0 : offer.price - (available[0]?.offer.price ?? offer.price);
               return (
-                <tr key={offer.key} className={cn("align-middle transition", isBest && "bg-success-subtle/60")}>
+                <tr key={offer.listingId} className={cn("align-middle transition", isBest && "bg-success-subtle/60")}>
                   <td className="px-4 py-3.5">
                     <div className="flex items-center gap-2.5">
                       <PlatformLogo platform={offer.platform} size="lg" />
@@ -138,10 +138,10 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
       <ul className="space-y-3 md:hidden">
         {rows.map((row) => {
           const { offer } = row;
-          const isBest = offer.key === bestKey;
+          const isBest = offer.listingId === bestKey;
           return (
             <li
-              key={offer.key}
+              key={offer.listingId}
               className={cn("rounded-2xl border bg-card p-4 shadow-card", isBest && "border-success/50 bg-success-subtle/50")}
             >
               <div className="flex items-start gap-3">

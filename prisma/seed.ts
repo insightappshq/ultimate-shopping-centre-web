@@ -15,9 +15,9 @@ import { Client } from "pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const DEMO = {
-  email: process.env.NEXT_PUBLIC_DEMO_EMAIL ?? "demo@usc.app",
-  phone: process.env.NEXT_PUBLIC_DEMO_PHONE ?? "+919000000001",
-  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD ?? "Demo@12345",
+  email: process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@usc.app",
+  phone: process.env.NEXT_PUBLIC_DEMO_PHONE || "+919000000001",
+  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
   fullName: "Demo Shopper",
 };
 
@@ -115,9 +115,11 @@ async function upsertWithSql(connectionString: string): Promise<string> {
     ] as const) {
       await client.query(
         `INSERT INTO auth.identities (id, user_id, provider_id, provider, identity_data, last_sign_in_at, created_at, updated_at)
-         VALUES (gen_random_uuid(), $1, $1::text, $2, $3::jsonb, now(), now(), now())
+         VALUES (gen_random_uuid(), $1::uuid, $2::text, $3, $4::jsonb, now(), now(), now())
          ON CONFLICT (provider_id, provider) DO UPDATE SET identity_data = EXCLUDED.identity_data, updated_at = now()`,
-        [id, provider, JSON.stringify(data)],
+        // user_id (uuid) and provider_id (text) are separate parameters: Postgres
+        // can't infer two different types for one placeholder.
+        [id, id, provider, JSON.stringify(data)],
       );
     }
 
@@ -142,7 +144,7 @@ async function main() {
   const userId =
     supabaseUrl && serviceKey
       ? await upsertWithAdminApi(supabaseUrl, serviceKey)
-      : await upsertWithSql(process.env.DIRECT_URL ?? databaseUrl);
+      : await upsertWithSql(process.env.DIRECT_URL || databaseUrl);
 
   const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: databaseUrl }) });
   try {

@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { PLATFORMS, type PlatformId } from "@/config/platforms";
 import { quickCommerceConfig } from "@/lib/env";
+import { uniqueBy } from "@/lib/hash";
 import { QuickCommerceError, qcRequest } from "./client";
 import { comparisonQuery, matchAcrossPlatforms } from "./matching";
 import { mockItem, mockSearch } from "./mock";
@@ -63,9 +64,11 @@ async function searchPlatform(platform: PlatformId, query: string, loc: Location
     products = data.products ?? [];
   }
 
-  return products
+  const offers = products
     .map((raw) => normalizeSearchProduct(platform, raw))
     .filter((offer): offer is Offer => offer !== null);
+  // Platforms occasionally repeat a listing within one response.
+  return uniqueBy(offers, (offer) => offer.listingId);
 }
 
 function toStatus(platform: PlatformId, result: PromiseSettledResult<Offer[]>): PlatformStatus {
@@ -147,7 +150,9 @@ async function fetchItem(platform: PlatformId, itemId: string, loc: LocationKey)
     .filter((item): item is ProductDetail => item !== null);
   if (!primary) return null;
 
-  return { ...primary, variants: rest.filter((v) => v.productId !== primary.productId) };
+  // Variants can share the primary's item id (e.g. Instamart pack sizes).
+  const variants = uniqueBy(rest, (v) => v.listingId).filter((v) => v.listingId !== primary.listingId);
+  return { ...primary, variants };
 }
 
 export async function getProduct(

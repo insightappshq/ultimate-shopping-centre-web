@@ -1,5 +1,6 @@
 import "server-only";
 import { PLATFORMS, type PlatformId } from "@/config/platforms";
+import { fnv1a } from "@/lib/hash";
 import type { ApiItem, ApiSearchProduct } from "./types";
 
 /**
@@ -74,12 +75,7 @@ const PLATFORM_BIAS: Record<PlatformId, number> = {
 };
 
 function hash(text: string): number {
-  let h = 2166136261;
-  for (let i = 0; i < text.length; i++) {
-    h ^= text.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return (h >>> 0) / 4294967295;
+  return fnv1a(text) / 4294967295;
 }
 
 function mockId(platform: PlatformId, slug: string) {

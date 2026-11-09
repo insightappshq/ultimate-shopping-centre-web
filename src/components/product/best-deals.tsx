@@ -48,7 +48,7 @@ export function pickDeals(comparison: Comparison): Deal[] {
   const unitPriced = offers.filter((o) => o.unitPrice);
   if (unitPriced.length > 1) {
     const value = unitPriced.reduce((a, b) => (b.unitPrice!.value < a.unitPrice!.value ? b : a));
-    if (value.key !== cheapest.key) {
+    if (value.listingId !== cheapest.listingId) {
       deals.push({
         key: "value",
         icon: ScaleIcon,
@@ -61,7 +61,7 @@ export function pickDeals(comparison: Comparison): Deal[] {
   }
 
   const discounted = offers.reduce((a, b) => (b.discountPercent > a.discountPercent ? b : a));
-  if (discounted.discountPercent >= 5 && discounted.key !== cheapest.key) {
+  if (discounted.discountPercent >= 5 && discounted.listingId !== cheapest.listingId) {
     deals.push({
       key: "discount",
       icon: BadgePercentIcon,

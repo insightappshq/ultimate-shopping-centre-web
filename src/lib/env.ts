@@ -20,7 +20,11 @@ type ServerEnv = z.infer<typeof serverSchema>;
 let cached: ServerEnv | undefined;
 
 export function serverEnv(): ServerEnv {
-  cached ??= serverSchema.parse(process.env);
+  // `KEY=` in a .env file yields "", which should mean "not set", not "invalid".
+  const defined = Object.fromEntries(
+    Object.entries(process.env).filter(([, value]) => value !== undefined && value.trim() !== ""),
+  );
+  cached ??= serverSchema.parse(defined);
   return cached;
 }
 

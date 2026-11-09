@@ -97,11 +97,10 @@ export async function sendOtpAction(channel: AuthChannel, identifier: string): P
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.signInWithOtp(
+      // Code-only sign-in: Supabase emails a 6-digit {{ .Token }} (see
+      // `npm run auth:configure`) that the user types into the OTP screen.
       "email" in parsed
-        ? {
-            email: parsed.email,
-            options: { shouldCreateUser: true, emailRedirectTo: `${siteConfig.url}/auth/confirm` },
-          }
+        ? { email: parsed.email, options: { shouldCreateUser: true } }
         : { phone: parsed.phone, options: { shouldCreateUser: true } },
     );
     if (error) return { ok: false, error: friendlyError(error), field: "identifier" };

@@ -26,7 +26,8 @@ export interface ApiSearchProduct {
   name?: string | null;
   brand?: string | null;
   available?: boolean | null;
-  images?: string[] | null;
+  /** Plain URLs or `{ type, url }` media objects, depending on platform. */
+  images?: unknown;
   image?: string | null;
   mrp?: number | string | null;
   offer_price?: number | string | null;
@@ -65,8 +66,11 @@ export interface ApiItem {
   platform?: string | ApiPlatformInfo;
   store_id?: string | null;
   fetched_at?: string | null;
-  gallery?: string[] | null;
-  images?: string[] | null;
+  /** Plain URLs or `{ type, url }` media objects. */
+  gallery?: unknown;
+  images?: unknown;
+  /** Rich product content (description, specs, media…) when the platform provides it. */
+  metadata?: Record<string, unknown> | null;
   currency?: string;
   [extra: string]: unknown;
 }
@@ -105,8 +109,14 @@ export interface UnitPrice {
 
 /** One product listing on one platform. */
 export interface Offer {
-  /** `${platform}:${productId}`, unique across the app. */
+  /**
+   * `${platform}:${productId}` — the product's identity for cart and wishlist.
+   * Not unique per listing: a platform can return several listings (e.g. pack
+   * sizes) under one product id. Use `listingId` for React keys and grouping.
+   */
   key: string;
+  /** `${key}#${salt}` — unique per listing; salt is a hash of name + pack size. */
+  listingId: string;
   platform: PlatformId;
   productId: string;
   name: string;
@@ -134,8 +144,25 @@ export interface ProductDetail extends Offer {
   fetchedAt: string | null;
   /** Other pack sizes returned by the platform (e.g. Instamart variants). */
   variants: Offer[];
-  /** Any additional scalar attributes returned by the API. */
-  attributes: { label: string; value: string }[];
+  info: ProductInfo;
+}
+
+export interface ProductSpec {
+  group: string;
+  label: string;
+  value: string;
+}
+
+/** Descriptive content from the item endpoint's `metadata`, normalised. */
+export interface ProductInfo {
+  category: string | null;
+  /** Description split into titled sections ("About the Product", "Ingredients"…). */
+  sections: { heading: string | null; body: string }[];
+  highlights: string[];
+  specifications: ProductSpec[];
+  dietaryLabels: string[];
+  badges: string[];
+  disclaimer: string | null;
 }
 
 export type PlatformErrorCode =

@@ -1,5 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { cache } from "react";
 import { db } from "@/lib/db";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -21,6 +22,10 @@ export interface SessionUser {
 /** Validated user for this request, or null. Deduplicated per render. */
 export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
   if (!isSupabaseConfigured()) return null;
+  // Supabase checks token expiry with Date.now(), which Cache Components won't
+  // allow during prerendering. A session is per-request by nature, so opt in
+  // to request-time rendering explicitly (callers already sit inside Suspense).
+  await connection();
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase.auth.getClaims();
   const claims = data?.claims;

@@ -8,6 +8,7 @@ import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { BestDeals } from "@/components/product/best-deals";
 import { BuyOnPlatformButton } from "@/components/product/buy-on-platform-button";
 import { PriceComparison } from "@/components/product/price-comparison";
+import { AssuranceBadges, FoodMark, ProductDetails } from "@/components/product/product-details";
 import { DiscountBadge, Price } from "@/components/product/price";
 import { OfferCard } from "@/components/product/product-card";
 import { ProductGallery } from "@/components/product/product-gallery";
@@ -26,7 +27,7 @@ import { PLATFORMS, type PlatformId } from "@/config/platforms";
 import { toSnapshot } from "@/lib/data/schemas";
 import { getUserProductState } from "@/lib/data/user-product-state";
 import { fallbackTo } from "@/lib/errors";
-import { formatCount, formatPrice } from "@/lib/format";
+import { formatPrice } from "@/lib/format";
 import { getLocation } from "@/lib/location.server";
 import { compareProduct, getProduct } from "@/lib/quickcommerce/service";
 import { productHref, searchHref } from "@/lib/routes";
@@ -116,6 +117,7 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
           )}
           <h1 className="text-2xl leading-tight font-bold text-balance sm:text-3xl">{product.name}</h1>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+            <FoodMark labels={product.info.dietaryLabels} />
             {product.quantity && <span className="rounded-md bg-muted px-2 py-0.5 font-medium">{product.quantity}</span>}
             <Rating rating={product.rating} count={product.ratingCount} />
             <StockStatus available={product.available} inventory={product.inventory} />
@@ -151,6 +153,11 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
             <WishlistButton product={snapshot} saved={userState.savedKeys.has(product.key)} variant="full" />
           </div>
           <BuyOnPlatformButton platform={product.platform} href={product.deeplink} size="xl" className="mt-2 w-full" />
+          {product.info.badges.length > 0 && (
+            <div className="mt-4 border-t pt-4">
+              <AssuranceBadges badges={product.info.badges} />
+            </div>
+          )}
         </div>
 
         <Suspense fallback={<div className="h-20 animate-pulse rounded-xl bg-muted" />}>
@@ -163,7 +170,7 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
             <div className="flex flex-wrap gap-2">
               {product.variants.map((variant) => (
                 <Link
-                  key={variant.key}
+                  key={variant.listingId}
                   href={productHref(variant.platform, variant.productId, q)}
                   className="rounded-xl border bg-card px-3 py-2 text-sm transition hover:border-primary"
                 >
@@ -227,7 +234,7 @@ export async function ComparisonSection({ params, searchParams }: ProductRoutePr
           <SectionHeader title={<span id="related-heading">You may also like</span>} />
           <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {comparison.related.slice(0, 6).map((offer) => (
-              <li key={offer.key}>
+              <li key={offer.listingId}>
                 <OfferCard offer={offer} query={q} state={cardState} />
               </li>
             ))}
@@ -235,55 +242,6 @@ export async function ComparisonSection({ params, searchParams }: ProductRoutePr
         </section>
       )}
     </div>
-  );
-}
-
-function ProductDetails({ product }: { product: NonNullable<Awaited<ReturnType<typeof getProduct>>> }) {
-  const meta = PLATFORMS[product.platform];
-  const rows: { label: string; value: React.ReactNode }[] = [
-    { label: "Brand", value: product.brand ?? "—" },
-    { label: "Pack size", value: product.quantity ?? "—" },
-    { label: "Sold on", value: meta.name },
-    { label: "Availability", value: product.available ? "In stock" : "Out of stock" },
-    ...(product.inventory !== null ? [{ label: "Units in stock", value: String(product.inventory) }] : []),
-    ...(product.rating
-      ? [{ label: "Rating", value: `${product.rating} / 5${product.ratingCount ? ` (${formatCount(product.ratingCount)} ratings)` : ""}` }]
-      : []),
-    ...(product.mrp ? [{ label: "MRP", value: formatPrice(product.mrp) }] : []),
-    { label: "Delivery", value: product.eta ?? meta.typicalEta },
-    ...(product.storeId ? [{ label: "Store", value: product.storeId }] : []),
-    ...(product.fetchedAt ? [{ label: "Price checked", value: product.fetchedAt }] : []),
-    ...product.attributes,
-  ];
-
-  const showQuantity = product.quantity && !product.name.toLowerCase().includes(product.quantity.toLowerCase());
-  const summary = [
-    `${product.name}${showQuantity ? ` (${product.quantity})` : ""}`,
-    product.brand ? `by ${product.brand}` : null,
-    `is listed on ${meta.name} at ${formatPrice(product.price)}`,
-    product.discountPercent ? `— ${product.discountPercent}% below its MRP of ${formatPrice(product.mrp!)}` : null,
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  return (
-    <section aria-labelledby="details-heading" className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
-      <div>
-        <SectionHeader title={<span id="details-heading">About this product</span>} />
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {summary}. Delivery to your pincode is estimated at {product.eta ?? meta.typicalEta}. Prices and stock are
-          fetched live from the platform and may change at checkout.
-        </p>
-      </div>
-      <dl className="overflow-hidden rounded-2xl border bg-card text-sm shadow-card">
-        {rows.map((row, index) => (
-          <div key={row.label} className={index % 2 ? "grid grid-cols-[10rem_1fr] bg-muted/40" : "grid grid-cols-[10rem_1fr]"}>
-            <dt className="px-4 py-2.5 font-medium text-muted-foreground">{row.label}</dt>
-            <dd className="px-4 py-2.5">{row.value}</dd>
-          </div>
-        ))}
-      </dl>
-    </section>
   );
 }
 

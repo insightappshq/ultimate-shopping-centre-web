@@ -53,6 +53,7 @@ You can override these with the `NEXT_PUBLIC_DEMO_*` variables. Set `NEXT_PUBLIC
 | `db:studio` | Open Prisma Studio |
 | `db:seed` / `demo:seed` | Upsert the demo auth user, profile and sample search history |
 | `demo:reset` | Same as `demo:seed`, and also clears the demo cart, wishlist and history |
+| `auth:configure` | Configure Supabase email OTP (Resend SMTP and code-only templates) via the Management API |
 | `setup` | `db:deploy` followed by `db:seed` |
 
 ## Configuration
@@ -76,15 +77,31 @@ Without `SUPABASE_SERVICE_ROLE_KEY`, the seed script writes the demo user direct
 
 ### 3. Email OTP via Resend
 
-**Option A: Send Email hook (recommended).** USC renders a branded email with the 6-digit code and sends it through Resend.
+Email sign-in sends a **6-digit code with no sign-in link**. The shopper must type the code into the app. Supabase generates and verifies the code, and Resend delivers it.
 
-1. In Resend, verify your sending domain, create an API key and set `RESEND_API_KEY` and `EMAIL_FROM`.
-2. In Supabase, go to **Authentication → Hooks → Send Email → HTTPS** and enter `https://<your-domain>/api/auth/email-hook`.
-3. Copy the generated secret (`v1,whsec_…`) into `SUPABASE_AUTH_HOOK_SECRET`.
+1. In Resend, verify your sending domain, create an API key, and set `RESEND_API_KEY` and `EMAIL_FROM` (an address on that domain).
+2. Create a Supabase personal access token at <https://supabase.com/dashboard/account/tokens> and set `SUPABASE_ACCESS_TOKEN`.
+3. Run:
 
-Supabase must be able to reach the URL. For local development, expose port 3000 with a tunnel such as ngrok or Cloudflare Tunnel.
+   ```bash
+   npm run auth:configure -- --dry-run   # preview the changes
+   npm run auth:configure                # apply them
+   ```
 
-**Option B: Resend as Supabase SMTP.** In Supabase, go to **Authentication → SMTP settings** and enter host `smtp.resend.com`, port `465`, user `resend` and your Resend API key as the password. Then edit the Magic Link and Confirm signup templates so they include `{{ .Token }}`. That way users receive a code instead of only a link.
+This sets up Supabase in one step, through the Management API:
+- **Delivery:** Supabase sends its auth emails through Resend's SMTP relay (`smtp.resend.com`).
+- **Templates:** every auth email template (sign-in, sign-up, recovery, invite, email change, reauthentication) is replaced with USC's branded, code-only template, which uses `{{ .Token }}`.
+- **Codes:** 6 digits, expiring after 10 minutes.
+
+The script is idempotent; re-run it after changing the templates in `src/lib/email/templates.ts`.
+
+**Alternative: Send Email hook.** USC can render and send the email itself through `/api/auth/email-hook`, using the same template. Supabase must be able to reach the hook's URL over public HTTPS, so for local development use a tunnel.
+
+```bash
+npm run auth:configure -- --mode=hook --hook-url=https://<your-domain>/api/auth/email-hook
+```
+
+The script prints a generated `SUPABASE_AUTH_HOOK_SECRET` to add to `.env`.
 
 ### 4. QuickCommerce API
 

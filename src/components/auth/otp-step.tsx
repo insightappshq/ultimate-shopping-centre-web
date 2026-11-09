@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { FieldError } from "./fields";
 
-const RESEND_SECONDS = 30;
+// Supabase allows one OTP request per user every 60 seconds.
+const RESEND_SECONDS = 60;
 
 export function OtpStep({
   destination,

@@ -1,5 +1,4 @@
 import { Webhook } from "standardwebhooks";
-import { siteConfig } from "@/config/site";
 import { sendEmail } from "@/lib/email/resend";
 import { otpEmail, type EmailActionType } from "@/lib/email/templates";
 import { serverEnv } from "@/lib/env";
@@ -11,7 +10,11 @@ import { serverEnv } from "@/lib/env";
  * to send an auth email (OTP sign-in, sign-up confirmation, recovery…). We
  * verify the Standard Webhooks signature and deliver a branded email carrying
  * the 6-digit OTP via Resend.
- * Configure in Supabase: Authentication → Hooks → Send Email → HTTPS.
+ *
+ * Alternative to Supabase-managed templates over Resend SMTP (see
+ * `npm run auth:configure`). Use this when you need to render emails in-app;
+ * it requires a publicly reachable HTTPS URL. Enable with
+ * `npm run auth:configure -- --mode=hook`.
  */
 
 interface SendEmailHookPayload {
@@ -29,19 +32,6 @@ interface SendEmailHookPayload {
 
 function hookError(status: number, message: string) {
   return Response.json({ error: { http_code: status, message } }, { status });
-}
-
-function confirmUrl(tokenHash: string, type: EmailActionType, redirectTo: string) {
-  const url = new URL("/auth/confirm", siteConfig.url);
-  url.searchParams.set("token_hash", tokenHash);
-  url.searchParams.set("type", type === "login" ? "magiclink" : type);
-  try {
-    const next = new URL(redirectTo).searchParams.get("next");
-    if (next) url.searchParams.set("next", next);
-  } catch {
-    // redirect_to is optional; ignore malformed values.
-  }
-  return url.toString();
 }
 
 export async function POST(request: Request) {
@@ -71,11 +61,8 @@ export async function POST(request: Request) {
 
     await Promise.all(
       deliveries.map(({ to, token, hash }) => {
-        const email = otpEmail({
-          type: data.email_action_type,
-          token,
-          confirmUrl: hash ? confirmUrl(hash, data.email_action_type, data.redirect_to) : undefined,
-        });
+        // Code only — no magic link — so sign-in completes in the app.
+        const email = otpEmail({ type: data.email_action_type, code: token });
         return sendEmail({ to, ...email, idempotencyKey: `auth-${hash}` });
       }),
     );
