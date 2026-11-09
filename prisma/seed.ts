@@ -15,9 +15,9 @@ import { Client } from "pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
 const DEMO = {
-  email: process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@usc.app",
-  phone: process.env.NEXT_PUBLIC_DEMO_PHONE || "+919000000001",
-  password: process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
+  email: process.env.DEMO_USER_EMAIL || process.env.NEXT_PUBLIC_DEMO_EMAIL || "demo@usc.app",
+  phone: process.env.DEMO_USER_PHONE || process.env.NEXT_PUBLIC_DEMO_PHONE || "+919000000001",
+  password: process.env.DEMO_USER_PASSWORD || process.env.NEXT_PUBLIC_DEMO_PASSWORD || "Demo@12345",
   fullName: "Demo Shopper",
 };
 
@@ -48,7 +48,8 @@ async function upsertWithAdminApi(url: string, serviceKey: string): Promise<stri
     password: DEMO.password,
     email_confirm: true,
     phone_confirm: true,
-    user_metadata: { full_name: DEMO.fullName, is_demo: true },
+    // Onboarded so the demo goes straight into the app.
+    user_metadata: { full_name: DEMO.fullName, is_demo: true, onboarded: true },
   };
 
   if (existing) {
@@ -77,7 +78,7 @@ async function upsertWithSql(connectionString: string): Promise<string> {
     );
 
     let id = found.rows[0]?.id;
-    const metadata = JSON.stringify({ full_name: DEMO.fullName, is_demo: true });
+    const metadata = JSON.stringify({ full_name: DEMO.fullName, is_demo: true, onboarded: true });
     const appMetadata = JSON.stringify({ provider: "email", providers: ["email", "phone"] });
 
     if (id) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { EyeIcon, EyeOffIcon, MailIcon, SmartphoneIcon } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import type { AuthChannel } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
@@ -133,5 +134,21 @@ export function PasswordField({
       </div>
       <FieldError id="password-error" message={error} />
     </div>
+  );
+}
+
+export function LegalConsent() {
+  return (
+    <p className="text-center text-xs leading-relaxed text-muted-foreground">
+      By continuing, you agree to our{" "}
+      <Link href="/terms" className="font-medium text-foreground underline-offset-4 hover:underline">
+        Terms of Service
+      </Link>{" "}
+      and{" "}
+      <Link href="/cookies" className="font-medium text-foreground underline-offset-4 hover:underline">
+        Cookie Policy
+      </Link>
+      .
+    </p>
   );
 }

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { isPlatformId } from "@/config/platforms";
 import { fail, handleApiError, ok } from "@/lib/api";
+import { requireUserForMutation } from "@/lib/auth/dal";
 import { getLocation } from "@/lib/location.server";
 import { compareProduct, getProduct } from "@/lib/quickcommerce/service";
 
@@ -10,6 +11,7 @@ import { compareProduct, getProduct } from "@/lib/quickcommerce/service";
  */
 export async function GET(request: NextRequest, ctx: RouteContext<"/api/products/[platform]/[id]">) {
   try {
+    await requireUserForMutation();
     const { platform, id } = await ctx.params;
     if (!isPlatformId(platform)) return fail(404, "unknown_platform", `Unknown platform "${platform}"`);
 

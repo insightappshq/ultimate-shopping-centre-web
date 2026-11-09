@@ -24,7 +24,7 @@ const tokenSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
 
 /** Only allow same-origin relative redirects. */
 function safeNext(next: string | undefined): string {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/";
+  return next && next.startsWith("/") && !next.startsWith("//") ? next : "/home";
 }
 
 type AuthFailure = Extract<AuthResult, { ok: false }>;
@@ -68,7 +68,14 @@ function friendlyError(error: AuthError): string {
   return error.message;
 }
 
-async function afterSignIn(user: { id: string; email?: string; phone?: string; user_metadata?: Record<string, unknown> }) {
+/**
+ * Ensures the profile row exists and decides where to go next: first-time
+ * shoppers complete their profile (and confirm their pincode) before the app.
+ */
+async function afterSignIn(
+  user: { id: string; email?: string; phone?: string; user_metadata?: Record<string, unknown> },
+  next: string | undefined,
+): Promise<string> {
   const sessionUser: SessionUser = {
     id: user.id,
     email: user.email || null,
@@ -77,6 +84,10 @@ async function afterSignIn(user: { id: string; email?: string; phone?: string; u
   };
   // Profile creation must not block sign-in if the database is briefly unavailable.
   await ensureProfile(sessionUser).catch((error) => console.error("[auth] ensureProfile", error));
+
+  const destination = safeNext(next);
+  if (user.user_metadata?.onboarded) return destination;
+  return `/onboarding?next=${encodeURIComponent(destination)}`;
 }
 
 /** Turns unexpected failures (e.g. misconfiguration, network) into a form error. */
@@ -135,8 +146,7 @@ export async function verifyOtpAction(
     if (result.error || !result.data.user) {
       return { ok: false, error: result.error ? friendlyError(result.error) : "Verification failed", field: "token" };
     }
-    await afterSignIn(result.data.user);
-    return { ok: true, redirectTo: safeNext(next) };
+    return { ok: true, redirectTo: await afterSignIn(result.data.user, next) };
   });
 }
 
@@ -158,8 +168,7 @@ export async function signInWithPasswordAction(
     if (error || !data.user) {
       return { ok: false, error: error ? friendlyError(error) : "Sign in failed", field: "password" };
     }
-    await afterSignIn(data.user);
-    return { ok: true, redirectTo: safeNext(next) };
+    return { ok: true, redirectTo: await afterSignIn(data.user, next) };
   });
 }
 
@@ -192,8 +201,7 @@ export async function signUpAction(
 
     // With confirmations enabled Supabase returns a user but no session until verified.
     if (!data.session) return { ok: true, needsVerification: true };
-    if (data.user) await afterSignIn(data.user);
-    return { ok: true, redirectTo: safeNext(next) };
+    return { ok: true, redirectTo: data.user ? await afterSignIn(data.user, next) : safeNext(next) };
   });
 }
 

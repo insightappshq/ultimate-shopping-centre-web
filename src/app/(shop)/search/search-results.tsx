@@ -9,7 +9,7 @@ import { ActiveFilters, Pagination, ResultsToolbar } from "@/components/search/r
 import { PendingRegion, SearchStateProvider } from "@/components/search/search-state";
 import { Button } from "@/components/ui/button";
 import { popularSearches } from "@/config/site";
-import { getCurrentUser } from "@/lib/auth/dal";
+import { getCurrentUser, requireUser } from "@/lib/auth/dal";
 import { recordSearch } from "@/lib/data/profile";
 import { getUserProductState } from "@/lib/data/user-product-state";
 import { pluralize } from "@/lib/format";
@@ -19,7 +19,7 @@ import { searchProducts } from "@/lib/quickcommerce/service";
 import { searchHref } from "@/lib/routes";
 
 export async function SearchResults({ searchParams }: { searchParams: PageProps<"/search">["searchParams"] }) {
-  const filters = parseSearchParams(await searchParams);
+  const [filters] = await Promise.all([searchParams.then(parseSearchParams), requireUser("/search")]);
 
   if (!filters.q) {
     return (

@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const TABS = [
-  { href: "/", label: "Home", icon: HomeIcon, match: (p: string) => p === "/" },
+  { href: "/home", label: "Home", icon: HomeIcon, match: (p: string) => p === "/home" },
   { href: "/search", label: "Search", icon: SearchIcon, match: (p: string) => p.startsWith("/search") || p.startsWith("/product") },
   { href: "/wishlist", label: "Wishlist", icon: HeartIcon, match: (p: string) => p.startsWith("/wishlist") },
   { href: "/cart", label: "Cart", icon: ShoppingCartIcon, match: (p: string) => p.startsWith("/cart") },

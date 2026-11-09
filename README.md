@@ -27,9 +27,9 @@ npm run dev                   # http://localhost:3000
 
 If `QUICKCOMMERCE_API_KEY` is not set, the app uses a built-in **sample catalogue**, so you can try search, comparison, cart and wishlist without spending credits. Set the key (or `QUICKCOMMERCE_MOCK=false`) to switch to live prices.
 
-### Demo credentials
+### Demo account
 
-`npm run db:seed` creates (or resets the password of) this account. The login page shows it with one-click sign-in buttons.
+`npm run db:seed` creates (or resets) a demo account, marked as onboarded so it goes straight into the app. The credentials are not shown anywhere in the UI. They default to the values below and can be overridden with `DEMO_USER_EMAIL`, `DEMO_USER_PHONE` and `DEMO_USER_PASSWORD`.
 
 | | |
 | --- | --- |
@@ -38,7 +38,24 @@ If `QUICKCOMMERCE_API_KEY` is not set, the app uses a built-in **sample catalogu
 | Password | `Demo@12345` |
 | Mobile OTP | `123456` (after you add the Supabase test number below) |
 
-You can override these with the `NEXT_PUBLIC_DEMO_*` variables. Set `NEXT_PUBLIC_SHOW_DEMO_CREDENTIALS=false` to hide them in production.
+## Access and onboarding
+
+- **Public:** the landing page (`/`), `/terms`, `/cookies`, `/login` and `/signup`. Signed-in visitors to `/` are sent to the app at `/home`.
+- **Signed in only:** everything else — search, product pages, cart, wishlist, account — and the REST API. Signed-out page requests redirect to `/login?next=…`; API requests get `401`. The proxy (`src/proxy.ts`) handles the routing, and the data access layer re-checks the session on the server.
+- **Onboarding:** after signup or first sign-in, shoppers complete their profile at `/onboarding`: their name, and a delivery pincode detected from their device location and confirmed by them. Completion is stored as `user_metadata.onboarded` on the Supabase user, so the proxy can enforce it without a database query.
+
+## Location and pincode detection
+
+The delivery pincode comes from the device's location: the browser's geolocation is reverse-geocoded to a pincode. Typing a pincode works the other way, turning it into coordinates and an area name. Both are implemented in `src/lib/geo.ts`, using:
+
+- [OpenStreetMap Nominatim](https://nominatim.org/release-docs/latest/api/Overview/) to convert between coordinates and pincodes;
+- [India Post's pincode API](https://api.postalpincode.in) to validate pincodes and supply friendly area names.
+
+Results are cached for weeks, and requests send an identifying User-Agent, as Nominatim's [usage policy](https://operations.osmfoundation.org/policies/nominatim/) requires. Nominatim's public instance is limited to about 1 request per second. For production traffic, replace the two functions in `src/lib/geo.ts` with a commercial geocoder such as Google Maps, Mapbox or Ola Maps; callers don't change.
+
+## Legal pages
+
+`/terms` and `/cookies` are rendered from Markdown in `content/legal/`. Placeholders such as `{{ENTITY_NAME}}`, `{{JURISDICTION}}` and `{{GRIEVANCE_EMAIL}}` are filled from the `NEXT_PUBLIC_LEGAL_*` variables (see `.env.example`). The text is a starting template written for an Indian B2C price-comparison service; **have it reviewed by legal counsel before launch**. The cookie table lists exactly what the app sets: the Supabase session cookie, `usc_location`, and three localStorage keys. Update it if that changes.
 
 ## npm scripts
 
@@ -117,7 +134,9 @@ Set `QUICKCOMMERCE_API_KEY`. Each platform search costs 1 credit, and an item lo
 ```
 src/
 ├─ app/
-│  ├─ (shop)/              Storefront: home, search, product/[platform]/[id], cart, wishlist, account
+│  ├─ (marketing)/         Public landing page, /terms, /cookies (Markdown in content/legal)
+│  ├─ (shop)/              Signed-in app: home, search, product/[platform]/[id], cart, wishlist, account
+│  ├─ (onboarding)/        First-run profile and pincode confirmation
 │  ├─ (auth)/              Login and signup (split-screen layout)
 │  ├─ auth/confirm/        Handles magic links and email confirmation links
 │  └─ api/                 REST endpoints (see below)
@@ -137,7 +156,7 @@ src/
 │  ├─ auth/dal.ts          Data Access Layer: verified session, ensureProfile
 │  ├─ supabase/            Server, browser and proxy clients
 │  └─ email/               Resend client and OTP email template
-├─ proxy.ts                Session refresh and optimistic redirect for protected routes
+├─ proxy.ts                Session refresh, sign-in gate and onboarding redirect
 └─ generated/prisma/       Generated Prisma client (git-ignored)
 prisma/                    schema, migrations, seed
 ```

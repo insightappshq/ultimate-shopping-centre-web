@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPhone } from "@/lib/format";
-import { ChannelTabs, FieldError, IdentifierField, PasswordField } from "./fields";
+import { ChannelTabs, FieldError, IdentifierField, LegalConsent, PasswordField } from "./fields";
 import { OtpStep } from "./otp-step";
 
 type FieldErrors = Partial<Record<"identifier" | "password" | "token" | "fullName", string>>;
@@ -112,6 +112,7 @@ export function SignupForm() {
           Sign in
         </Link>
       </p>
+      <LegalConsent />
     </div>
   );
 }

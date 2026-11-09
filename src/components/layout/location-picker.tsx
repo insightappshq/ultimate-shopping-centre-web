@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronDownIcon, CrosshairIcon, Loader2Icon, MapPinIcon } from "lucide-react";
+import { ChevronDownIcon, Loader2Icon, LocateFixedIcon, MapPinIcon, SearchIcon } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { setLocationAction } from "@/actions/location";
+import { applyDeviceLocationAction, setLocationAction, setPincodeAction } from "@/actions/location";
+import { useDeviceLocation } from "@/components/location/use-device-location";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,59 +20,65 @@ import { CITY_PRESETS } from "@/lib/location";
 import type { GeoLocation } from "@/lib/quickcommerce/types";
 import { cn } from "@/lib/utils";
 
+/** Header trigger: "Deliver to" over "Area, City · 400030" — the pincode never wraps or truncates. */
+function LocationSummary({ location }: { location: GeoLocation }) {
+  return (
+    <span className="flex min-w-0 items-center gap-2">
+      <MapPinIcon className="size-4.5 shrink-0 text-primary" aria-hidden />
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span className="text-[0.68rem] font-medium text-muted-foreground">Deliver to</span>
+        <span className="flex min-w-0 items-center gap-1 text-sm">
+          <span className="truncate font-semibold">{location.label}</span>
+          <span className="shrink-0 font-semibold whitespace-nowrap text-muted-foreground tabular">
+            {location.pincode}
+          </span>
+          <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+        </span>
+      </span>
+    </span>
+  );
+}
+
 export function LocationPicker({ location, className }: { location: GeoLocation; className?: string }) {
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
-  const [locating, setLocating] = useState(false);
   const [pincode, setPincode] = useState(location.pincode);
-  const [coords, setCoords] = useState<{ lat: number; lon: number } | null>(null);
+  const device = useDeviceLocation(applyDeviceLocationAction);
 
-  const save = (next: GeoLocation) => {
-    startTransition(async () => {
-      const result = await setLocationAction(next);
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      toast.success(`Delivering to ${next.label} · ${next.pincode}`);
-      setOpen(false);
-      setCoords(null);
-    });
+  const done = (next: GeoLocation) => {
+    toast.success(`Delivering to ${next.label} · ${next.pincode}`);
+    setPincode(next.pincode);
+    setOpen(false);
   };
 
-  const useCurrentLocation = () => {
-    if (!("geolocation" in navigator)) {
-      toast.error("Location isn't available in this browser");
-      return;
-    }
-    setLocating(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocating(false);
-        setCoords({ lat: position.coords.latitude, lon: position.coords.longitude });
-        toast.info("Location detected — confirm your pincode to continue");
-      },
-      () => {
-        setLocating(false);
-        toast.error("We couldn't access your location. Pick a city instead.");
-      },
-      { enableHighAccuracy: false, timeout: 10_000, maximumAge: 300_000 },
-    );
+  const detect = async () => {
+    const result = await device.locate();
+    if (!result) return;
+    if (result.ok) done(result.data);
+    else toast.error(result.error);
   };
 
-  const savePincode = (event: React.FormEvent) => {
+  const applyPincode = (event: React.FormEvent) => {
     event.preventDefault();
     if (!/^[1-9]\d{5}$/.test(pincode)) {
       toast.error("Enter a valid 6-digit pincode");
       return;
     }
-    save({
-      label: coords ? "Current location" : location.label,
-      lat: coords?.lat ?? location.lat,
-      lon: coords?.lon ?? location.lon,
-      pincode,
+    startTransition(async () => {
+      const result = await setPincodeAction(pincode);
+      if (result.ok) done(result.data);
+      else toast.error(result.error);
     });
   };
+
+  const chooseCity = (city: GeoLocation) =>
+    startTransition(async () => {
+      const result = await setLocationAction(city);
+      if (result.ok) done(city);
+      else toast.error(result.error);
+    });
+
+  const busy = pending || device.busy;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,53 +86,57 @@ export function LocationPicker({ location, className }: { location: GeoLocation;
         <button
           type="button"
           className={cn(
-            "flex min-w-0 items-center gap-2 rounded-lg px-2 py-1.5 text-left transition hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
+            "flex min-w-0 items-center rounded-lg px-2 py-1.5 text-left transition hover:bg-accent focus-visible:ring-3 focus-visible:ring-ring focus-visible:outline-none",
             className,
           )}
-          aria-label={`Delivery location: ${location.label}, ${location.pincode}. Change`}
+          aria-label={`Delivery location: ${location.label}, pincode ${location.pincode}. Change`}
         >
-          <MapPinIcon className="size-4.5 shrink-0 text-primary" aria-hidden />
-          <span className="min-w-0 leading-tight">
-            <span className="block text-[0.68rem] font-medium text-muted-foreground">Deliver to</span>
-            <span className="flex items-center gap-0.5 text-sm font-semibold">
-              <span className="truncate">{location.label}</span>
-              <span className="text-muted-foreground">· {location.pincode}</span>
-              <ChevronDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-            </span>
-          </span>
+          <LocationSummary location={location} />
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Choose your delivery location</DialogTitle>
+          <DialogTitle>Delivery location</DialogTitle>
           <DialogDescription>
-            Prices, stock and delivery times vary by location. We use this to fetch what&apos;s available near you.
+            Prices, stock and delivery times depend on where you are. We use your pincode to check what each platform
+            can deliver to you.
           </DialogDescription>
         </DialogHeader>
 
-        <Button variant="outline" size="lg" onClick={useCurrentLocation} disabled={locating || pending} className="w-full">
-          {locating ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <CrosshairIcon data-icon="inline-start" />}
-          {coords ? "Location detected" : "Use my current location"}
+        <Button size="xl" onClick={detect} disabled={busy} className="w-full">
+          {device.busy ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <LocateFixedIcon data-icon="inline-start" />}
+          {device.status === "locating"
+            ? "Finding your location…"
+            : device.status === "resolving"
+              ? "Looking up your pincode…"
+              : "Use my current location"}
         </Button>
+        {device.error && <p className="-mt-2 text-xs text-destructive">{device.error}</p>}
 
-        <form onSubmit={savePincode} className="space-y-2">
-          <Label htmlFor="pincode">Delivery pincode</Label>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="h-px flex-1 bg-border" /> or enter a pincode <span className="h-px flex-1 bg-border" />
+        </div>
+
+        <form onSubmit={applyPincode} className="space-y-1.5">
+          <Label htmlFor="pincode" className="sr-only">
+            Pincode
+          </Label>
           <div className="flex gap-2">
             <Input
               id="pincode"
               inputMode="numeric"
+              autoComplete="postal-code"
               maxLength={6}
               value={pincode}
               onChange={(event) => setPincode(event.target.value.replace(/\D/g, ""))}
-              placeholder="e.g. 560034"
-              className="h-9"
+              placeholder="6-digit pincode"
+              className="h-11 tabular"
             />
-            <Button type="submit" size="lg" disabled={pending}>
-              {pending && <Loader2Icon className="animate-spin" data-icon="inline-start" />}
+            <Button type="submit" size="xl" variant="outline" disabled={busy}>
+              {pending ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : <SearchIcon data-icon="inline-start" />}
               Apply
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground">Required for DMart and JioMart availability.</p>
         </form>
 
         <div>
@@ -135,15 +146,15 @@ export function LocationPicker({ location, className }: { location: GeoLocation;
               <button
                 key={city.label}
                 type="button"
-                disabled={pending}
-                onClick={() => save(city)}
+                disabled={busy}
+                onClick={() => chooseCity(city)}
                 className={cn(
                   "rounded-lg border px-3 py-2 text-left text-sm transition hover:border-primary hover:bg-accent disabled:opacity-50",
-                  city.label === location.label && "border-primary bg-accent font-semibold",
+                  city.pincode === location.pincode && "border-primary bg-accent font-semibold",
                 )}
               >
                 {city.label}
-                <span className="block text-xs text-muted-foreground">{city.pincode}</span>
+                <span className="block text-xs text-muted-foreground tabular">{city.pincode}</span>
               </button>
             ))}
           </div>
@@ -159,7 +170,7 @@ export function LocationPickerFallback() {
       <MapPinIcon className="size-4.5 text-primary" aria-hidden />
       <div className="space-y-1">
         <div className="h-2 w-12 animate-pulse rounded bg-muted" />
-        <div className="h-3 w-24 animate-pulse rounded bg-muted" />
+        <div className="h-3 w-28 animate-pulse rounded bg-muted" />
       </div>
     </div>
   );

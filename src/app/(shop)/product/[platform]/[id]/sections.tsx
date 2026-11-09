@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { PLATFORMS, type PlatformId } from "@/config/platforms";
 import { toSnapshot } from "@/lib/data/schemas";
+import { requireUser } from "@/lib/auth/dal";
 import { getUserProductState } from "@/lib/data/user-product-state";
 import { fallbackTo } from "@/lib/errors";
 import { formatPrice } from "@/lib/format";
@@ -39,6 +40,7 @@ export interface ProductRouteProps {
 
 /** Request-scoped loaders so the hero and comparison share one fetch. */
 const loadProduct = cache(async (platform: PlatformId, id: string) => {
+  await requireUser(`/product/${platform}/${encodeURIComponent(id)}`);
   const location = await getLocation();
   const product = await getProduct(platform, id, location);
   return { product, location };

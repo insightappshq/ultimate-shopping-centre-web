@@ -15,10 +15,8 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { demoAccount } from "@/config/site";
 import { formatPhone } from "@/lib/format";
-import { DemoCredentials } from "./demo-credentials";
-import { ChannelTabs, IdentifierField, PasswordField } from "./fields";
+import { ChannelTabs, IdentifierField, LegalConsent, PasswordField } from "./fields";
 import { OtpStep } from "./otp-step";
 
 type Method = "password" | "otp";
@@ -78,19 +76,6 @@ export function LoginForm() {
     startTransition(async () => {
       setErrors({});
       finish(await signInWithPasswordAction(channel, identifier, password, next));
-    });
-  };
-
-  const signInAsDemo = (demoChannel: AuthChannel) => {
-    const id = demoChannel === "email" ? demoAccount.email : demoAccount.phone.replace(/^\+91/, "");
-    setChannel(demoChannel);
-    setMethod("password");
-    setIdentifier(id);
-    setPassword(demoAccount.password);
-    setOtpSentTo(null);
-    startTransition(async () => {
-      setErrors({});
-      finish(await signInWithPasswordAction(demoChannel, id, demoAccount.password, next));
     });
   };
 
@@ -165,7 +150,7 @@ export function LoginForm() {
         </Link>
       </p>
 
-      <DemoCredentials pending={pending} onUseEmail={() => signInAsDemo("email")} onUsePhone={() => signInAsDemo("phone")} />
+      <LegalConsent />
     </div>
   );
 }

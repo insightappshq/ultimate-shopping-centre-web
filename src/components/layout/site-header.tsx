@@ -14,8 +14,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
       <div className="container-page flex h-16 items-center gap-3 md:gap-6">
-        <Logo />
-        <div className="hidden max-w-[13rem] min-w-0 lg:block">
+        <Logo href="/home" />
+        <div className="hidden max-w-[17rem] min-w-0 lg:block">
           <Suspense fallback={<LocationPickerFallback />}>
             <CurrentLocation />
           </Suspense>

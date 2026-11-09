@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { fail, handleApiError, ok } from "@/lib/api";
+import { requireUserForMutation } from "@/lib/auth/dal";
 import { getLocation } from "@/lib/location.server";
 import { buildFacets, parseSearchParams, shapeResults } from "@/lib/quickcommerce/filters";
 import { searchProducts } from "@/lib/quickcommerce/service";
@@ -10,6 +11,7 @@ import { searchProducts } from "@/lib/quickcommerce/service";
  */
 export async function GET(request: NextRequest) {
   try {
+    await requireUserForMutation();
     const filters = parseSearchParams(Object.fromEntries(request.nextUrl.searchParams));
     if (!filters.q) return fail(422, "invalid_request", "Query parameter `q` is required");
 
