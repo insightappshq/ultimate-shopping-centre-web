@@ -70,7 +70,7 @@ Results are cached for weeks, and requests send an identifying User-Agent, as No
 | `db:studio` | Open Prisma Studio |
 | `db:seed` / `demo:seed` | Upsert the demo auth user, profile and sample search history |
 | `demo:reset` | Same as `demo:seed`, and also clears the demo cart, wishlist and history |
-| `auth:configure` | Configure Supabase email OTP (Resend SMTP and code-only templates) via the Management API |
+| `auth:configure` | Configure Supabase email OTP (Resend SMTP and code-only templates) via the Management API; `-- --mode=phone` adds Twilio Verify phone OTP settings and the demo test number |
 | `setup` | `db:deploy` followed by `db:seed` |
 
 ## Configuration
@@ -87,7 +87,7 @@ The initial migration turns on **row-level security, with no policies,** for eve
 
 1. **Project settings → API**: copy the URL and the publishable (or anon) key into `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Copy the service-role key into `SUPABASE_SERVICE_ROLE_KEY`; only the seed script uses it.
 2. **Authentication → Providers → Email**: enable it. It allows email + password and email OTP.
-3. **Authentication → Providers → Phone**: enable it and configure an SMS provider (Twilio, MessageBird, Vonage or Textlocal) for real SMS OTPs. To demo without SMS, add the test number `919000000001=123456`.
+3. **Authentication → Sign In / Providers → Phone**: enable it with **Twilio Verify** as the SMS provider (Account SID, Auth Token and Verify Service SID). See "Phone OTP with Twilio Verify" below.
 4. **Authentication → URL configuration**: set the Site URL to `NEXT_PUBLIC_SITE_URL` and add `<site-url>/auth/confirm` to the redirect URLs.
 
 Without `SUPABASE_SERVICE_ROLE_KEY`, the seed script writes the demo user directly into Supabase's `auth` schema over `DIRECT_URL`/`DATABASE_URL`.
@@ -119,6 +119,26 @@ npm run auth:configure -- --mode=hook --hook-url=https://<your-domain>/api/auth/
 ```
 
 The script prints a generated `SUPABASE_AUTH_HOOK_SECRET` to add to `.env`.
+
+### Phone OTP with Twilio Verify
+
+Mobile sign-in sends a one-time code through **Twilio Verify**. Supabase calls Verify for you, so the app only uses `signInWithOtp({ phone })` and `verifyOtp({ phone, token, type: "sms" })`. Twilio generates and checks the code, which means Supabase's SMS template and OTP-length settings don't apply.
+
+1. In Twilio, create a Verify Service. Keep its code length at **6**, or set `NEXT_PUBLIC_PHONE_OTP_LENGTH` to match it.
+2. In Supabase, enable the Phone provider with Twilio Verify and your Account SID, Auth Token and Verify Service SID (`VA…`).
+3. Run `npm run auth:configure -- --mode=phone` (add `--dry-run` to preview). It:
+   - adds the demo test number (`919000000001 → 123456`, valid for a year), which signs in without sending a real SMS;
+   - keeps any test numbers you've already added;
+   - sets the resend interval to 60 seconds, matching the app's "Resend code" timer.
+4. **WhatsApp (optional):** enable the WhatsApp channel on the Verify service, then set `NEXT_PUBLIC_PHONE_OTP_WHATSAPP=true`. The login screen then offers "Send code on WhatsApp", and the code screen offers switching between WhatsApp and SMS.
+
+Mobile numbers are Indian (+91, 10 digits starting 6–9). Common Twilio errors are shown as plain guidance:
+- too many attempts (60203)
+- invalid number (60200 / 21211)
+- unsupported region (60605)
+- WhatsApp not enabled
+
+Supabase's project-wide SMS limit defaults to 30 per hour. Raise it under **Authentication → Rate Limits** before launch, and consider enabling CAPTCHA to protect against SMS abuse.
 
 ### 4. QuickCommerce API
 

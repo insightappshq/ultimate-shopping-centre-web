@@ -3,6 +3,7 @@
 import type { AuthError } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { authConfig, otpLengthFor, type OtpDelivery } from "@/config/auth";
 import { siteConfig } from "@/config/site";
 import { ensureProfile, type SessionUser } from "@/lib/auth/dal";
 import { rethrowNextErrors } from "@/lib/errors";
@@ -20,7 +21,10 @@ const passwordSchema = z
   .string()
   .min(8, "Password must be at least 8 characters")
   .max(72, "Password is too long");
-const tokenSchema = z.string().regex(/^\d{6}$/, "Enter the 6-digit code");
+function tokenSchema(channel: AuthChannel) {
+  const length = otpLengthFor(channel);
+  return z.string().regex(new RegExp(`^\\d{${length}}$`), `Enter the ${length}-digit code`);
+}
 
 /** Only allow same-origin relative redirects. */
 function safeNext(next: string | undefined): string {
@@ -62,10 +66,35 @@ function friendlyError(error: AuthError): string {
   }
   if (error.code === "email_not_confirmed") return "Verify your email first — we've sent you a code.";
   if (error.code === "phone_not_confirmed") return "Verify your phone number first — we've sent you a code.";
-  if (message.includes("sms") || message.includes("phone provider")) {
-    return "Phone sign-in isn't available right now. Try email instead.";
+  return smsProviderError(message) ?? error.message;
+}
+
+/**
+ * Twilio Verify errors arrive wrapped in Supabase's message (for example
+ * "Error sending confirmation OTP to provider: … 60203"). Map the common ones
+ * to guidance the shopper can act on.
+ */
+function smsProviderError(message: string): string | null {
+  if (!/provider|twilio|verify|sms|whatsapp/.test(message)) return null;
+  if (/60203|max send attempts/.test(message)) {
+    return "Too many codes were requested for this number. Please wait 10 minutes and try again.";
   }
-  return error.message;
+  if (/60202|max check attempts/.test(message)) {
+    return "Too many incorrect codes. Request a new code and try again.";
+  }
+  if (/60200|21211|21614|invalid parameter.*to|not a valid phone|invalid phone/.test(message)) {
+    return "That mobile number can't receive codes. Check the number and try again.";
+  }
+  if (/60605|21408|geo|region|permission to send/.test(message)) {
+    return "We can't send codes to this number's region yet. Try signing in with email.";
+  }
+  if (/whatsapp|60410|channel/.test(message)) {
+    return "WhatsApp codes aren't available right now. Send the code by SMS instead.";
+  }
+  if (/20404|not found/.test(message)) {
+    return "That code is invalid or has expired. Request a new one.";
+  }
+  return "We couldn't send a code to this number right now. Try again shortly, or sign in with email.";
 }
 
 /**
@@ -101,18 +130,28 @@ async function guarded(run: () => Promise<AuthResult>): Promise<AuthResult> {
   }
 }
 
-export async function sendOtpAction(channel: AuthChannel, identifier: string): Promise<AuthResult> {
+export async function sendOtpAction(
+  channel: AuthChannel,
+  identifier: string,
+  delivery: OtpDelivery = "sms",
+): Promise<AuthResult> {
   return guarded(async () => {
     const parsed = parseIdentifier(channel, identifier);
     if (isFailure(parsed)) return parsed;
 
     const supabase = await createSupabaseServerClient();
     const { error } = await supabase.auth.signInWithOtp(
-      // Code-only sign-in: Supabase emails a 6-digit {{ .Token }} (see
-      // `npm run auth:configure`) that the user types into the OTP screen.
+      // Email: Supabase sends a code-only email (see `npm run auth:configure`).
+      // Phone: Supabase asks Twilio Verify to send the code by SMS or WhatsApp.
       "email" in parsed
         ? { email: parsed.email, options: { shouldCreateUser: true } }
-        : { phone: parsed.phone, options: { shouldCreateUser: true } },
+        : {
+            phone: parsed.phone,
+            options: {
+              shouldCreateUser: true,
+              channel: delivery === "whatsapp" && authConfig.whatsappOtp ? "whatsapp" : "sms",
+            },
+          },
     );
     if (error) return { ok: false, error: friendlyError(error), field: "identifier" };
     return { ok: true };
@@ -128,7 +167,7 @@ export async function verifyOtpAction(
   return guarded(async () => {
     const parsed = parseIdentifier(channel, identifier);
     if (isFailure(parsed)) return parsed;
-    const code = tokenSchema.safeParse(token.trim());
+    const code = tokenSchema(channel).safeParse(token.trim());
     if (!code.success) return { ok: false, error: code.error.issues[0].message, field: "token" };
 
     const supabase = await createSupabaseServerClient();

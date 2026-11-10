@@ -7,6 +7,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { sendOtpAction, signUpAction, verifyOtpAction, type AuthChannel, type AuthResult } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
+import { otpLengthFor } from "@/config/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatPhone } from "@/lib/format";
@@ -45,10 +46,18 @@ export function SignupForm() {
     return (
       <OtpStep
         destination={channel === "email" ? identifier : formatPhone(`+91${identifier.replace(/\D/g, "")}`)}
+        length={otpLengthFor(channel)}
+        delivery={channel === "phone" ? "sms" : undefined}
         pending={pending}
         error={errors.token}
         onBack={() => setVerifying(false)}
-        onResend={() => startTransition(async () => void (await sendOtpAction(channel, identifier)))}
+        onResend={(via) =>
+          startTransition(async () => {
+            const result = await sendOtpAction(channel, identifier, via);
+            if (!result.ok) toast.error(result.error);
+            else toast.success("New code sent");
+          })
+        }
         onVerify={(code) =>
           startTransition(async () => {
             setErrors({});

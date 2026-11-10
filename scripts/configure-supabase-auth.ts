@@ -5,6 +5,9 @@
  *   npm run auth:configure                 Resend SMTP + code-only templates (default)
  *   npm run auth:configure -- --mode=hook --hook-url=https://<domain>/api/auth/email-hook
  *                                          Route auth emails through the app's Send Email hook
+ *   npm run auth:configure -- --mode=phone Phone OTP (Twilio Verify) settings: demo test
+ *                                          number and a 60s resend interval. Twilio
+ *                                          credentials stay as set in the dashboard.
  *   npm run auth:configure -- --dry-run    Print the changes without applying them
  *
  * Requires SUPABASE_ACCESS_TOKEN: a personal access token from
@@ -132,9 +135,54 @@ async function api(method: "GET" | "PATCH", ref: string, body?: object) {
 const redact = (key: string, value: unknown) =>
   /pass|secret/.test(key) ? "••••••" : typeof value === "string" && value.length > 80 ? `<${value.length} chars>` : value;
 
+/**
+ * Phone sign-in runs on Twilio Verify (provider and credentials are set in the
+ * Supabase dashboard). This adds the demo account's test number — test numbers
+ * bypass Twilio, so the demo works without sending a paid SMS — and aligns the
+ * resend interval with the app's 60-second "Resend code" timer.
+ */
+async function phoneFields(ref: string) {
+  const phone = (process.env.DEMO_USER_PHONE || process.env.NEXT_PUBLIC_DEMO_PHONE || "+919000000001").replace(/\D/g, "");
+  const otp = process.env.DEMO_USER_PHONE_OTP || process.env.NEXT_PUBLIC_DEMO_PHONE_OTP || "123456";
+  if (!/^\d{4,10}$/.test(otp)) fail("DEMO_USER_PHONE_OTP must be 4–10 digits");
+
+  // Keep any test numbers already configured in the dashboard.
+  const current = await api("GET", ref);
+  const entries = new Map(
+    String(current.sms_test_otp ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map((pair) => pair.split("=") as [string, string]),
+  );
+  entries.set(phone, otp);
+
+  const validUntil = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().replace(/\.\d{3}Z$/, "Z");
+  return {
+    sms_test_otp: [...entries].map(([number, code]) => `${number}=${code}`).join(","),
+    sms_test_otp_valid_until: validUntil,
+    sms_max_frequency: 60,
+  };
+}
+
 async function main() {
-  if (mode !== "smtp" && mode !== "hook") fail('--mode must be "smtp" or "hook"');
+  if (!["smtp", "hook", "phone"].includes(mode)) fail('--mode must be "smtp", "hook" or "phone"');
   const ref = projectRef();
+
+  if (mode === "phone") {
+    const changes = await phoneFields(ref);
+    console.log(`\nSupabase project ${ref} — phone OTP via Twilio Verify`);
+    for (const [key, value] of Object.entries(changes)) console.log(`  ${key}: ${value}`);
+    if (dryRun) {
+      console.log("\nDry run — nothing was changed.\n");
+      return;
+    }
+    const updated = await api("PATCH", ref, changes);
+    if (updated.sms_provider !== "twilio_verify") {
+      console.warn(`\n⚠ SMS provider is "${updated.sms_provider}", not Twilio Verify. Check Authentication → Sign In / Providers → Phone.`);
+    }
+    console.log("\n✓ Phone OTP settings applied. Allow ~1 minute for Supabase to restart its auth server.\n");
+    return;
+  }
 
   const hook = mode === "hook" ? hookFields() : null;
   const changes = { ...templateFields(), ...(hook ? hook.fields : smtpFields()) };
