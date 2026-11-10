@@ -6,6 +6,7 @@ import { EmptyState } from "@/components/common/empty-state";
 import { SectionHeader } from "@/components/common/page-header";
 import { AddToCartButton } from "@/components/product/add-to-cart-button";
 import { BestDeals } from "@/components/product/best-deals";
+import { BuyingOptions } from "@/components/product/buying-options";
 import { BuyOnPlatformButton } from "@/components/product/buy-on-platform-button";
 import { PriceComparison } from "@/components/product/price-comparison";
 import { AssuranceBadges, FoodMark, ProductDetails } from "@/components/product/product-details";
@@ -201,9 +202,18 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
 }
 
 async function HeroDeals({ platform, id, q }: { platform: PlatformId; id: string; q?: string }) {
-  const comparison = await loadComparison(platform, id, q).catch(fallbackTo(null));
-  if (!comparison || comparison.rows.length < 2) return null;
-  return <BestDeals comparison={comparison} />;
+  const [comparison, { product }, userState] = await Promise.all([
+    loadComparison(platform, id, q).catch(fallbackTo(null)),
+    loadProduct(platform, id),
+    getUserProductState(),
+  ]);
+  if (!comparison || !product) return null;
+  return (
+    <div className="space-y-3">
+      <BuyingOptions comparison={comparison} current={product} query={q} cartKeys={userState.cartKeys} />
+      {comparison.rows.length > 1 && <BestDeals comparison={comparison} />}
+    </div>
+  );
 }
 
 export async function ComparisonSection({ params, searchParams }: ProductRouteProps) {
@@ -220,9 +230,9 @@ export async function ComparisonSection({ params, searchParams }: ProductRoutePr
 
   return (
     <div className="space-y-12">
-      <section aria-labelledby="compare-heading">
+      <section aria-label="Compare prices across platforms">
         <SectionHeader
-          title={<span id="compare-heading">Compare prices across platforms</span>}
+          title="Compare prices across platforms"
           description={
             platformsCompared > 1
               ? `Found on ${platformsCompared} platforms, cheapest first. Prices update live for your location.`
@@ -235,8 +245,8 @@ export async function ComparisonSection({ params, searchParams }: ProductRoutePr
       <ProductDetails product={product} />
 
       {comparison.related.length > 0 && (
-        <section aria-labelledby="related-heading">
-          <SectionHeader title={<span id="related-heading">You may also like</span>} />
+        <section aria-label="You may also like">
+          <SectionHeader title="You may also like" />
           <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             {comparison.related.slice(0, 6).map((offer) => (
               <li key={offer.listingId}>

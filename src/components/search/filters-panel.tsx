@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangleIcon, SearchIcon, StarIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 import { PlatformLogo } from "@/components/brand/platform-logo";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -162,6 +162,7 @@ function PlatformFilter({
   statuses: PlatformStatus[];
   onChange: (platforms: PlatformId[]) => void;
 }) {
+  const uid = useId();
   const toggle = (id: PlatformId, checked: boolean) => {
     const next = checked ? [...selected, id] : selected.filter((p) => p !== id);
     if (next.length) onChange(PLATFORM_LIST.map((p) => p.id).filter((p) => next.includes(p)));
@@ -175,12 +176,12 @@ function PlatformFilter({
         return (
           <li key={platform.id} className="flex items-center gap-2.5">
             <Checkbox
-              id={`platform-${platform.id}`}
+              id={`${uid}-platform-${platform.id}`}
               checked={checked}
               disabled={checked && selected.length === 1}
               onCheckedChange={(value) => toggle(platform.id, value === true)}
             />
-            <Label htmlFor={`platform-${platform.id}`} className="flex flex-1 cursor-pointer items-center gap-2 text-sm font-normal">
+            <Label htmlFor={`${uid}-platform-${platform.id}`} className="flex flex-1 cursor-pointer items-center gap-2 text-sm font-normal">
               <PlatformLogo platform={platform.id} size="sm" />
               <span className="flex-1">{platform.name}</span>
             </Label>
@@ -245,6 +246,7 @@ function BrandFilter({
   selected: string[];
   onChange: (brands: string[]) => void;
 }) {
+  const uid = useId();
   const [query, setQuery] = useState("");
   const [expanded, setExpanded] = useState(false);
   const visible = useMemo(() => {
@@ -273,11 +275,11 @@ function BrandFilter({
         {visible.map((brand) => (
           <li key={brand.value} className="flex items-center gap-2.5">
             <Checkbox
-              id={`brand-${brand.value}`}
+              id={`${uid}-brand-${brand.value}`}
               checked={selected.includes(brand.value)}
               onCheckedChange={(v) => toggle(brand.value, v === true)}
             />
-            <Label htmlFor={`brand-${brand.value}`} className="flex-1 cursor-pointer truncate text-sm font-normal">
+            <Label htmlFor={`${uid}-brand-${brand.value}`} className="flex-1 cursor-pointer truncate text-sm font-normal">
               {brand.value}
             </Label>
             <span className="text-xs text-muted-foreground tabular">{brand.count}</span>

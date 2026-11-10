@@ -62,10 +62,10 @@ export async function SearchResults({ searchParams }: { searchParams: PageProps<
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 space-y-3" aria-labelledby="results-heading">
+        <section className="min-w-0 flex-1 space-y-3" aria-label="Search results">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div className="min-w-0">
-              <h1 id="results-heading" className="truncate text-2xl">
+              <h1 className="truncate text-2xl">
                 {filters.q}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">

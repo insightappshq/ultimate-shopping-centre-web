@@ -1,4 +1,4 @@
-import { ClockIcon, HeartIcon, LogOutIcon, MailIcon, PackageCheckIcon, PhoneIcon, ShoppingCartIcon } from "lucide-react";
+import { ClockIcon, HeartIcon, KeyRoundIcon, LogOutIcon, MailIcon, PackageCheckIcon, PhoneIcon, ShoppingCartIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,6 +9,9 @@ import { LocationPicker } from "@/components/layout/location-picker";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ContactVerification } from "@/components/account/contact-verification";
+import { getContactStatus } from "@/lib/auth/contact";
+import { isFullyVerified } from "@/lib/auth/contact-types";
 import { requireUser } from "@/lib/auth/dal";
 import { getAccountStats, getProfile, getRecentSearches } from "@/lib/data/profile";
 import { formatPhone, initials } from "@/lib/format";
@@ -29,11 +32,12 @@ export default function AccountPage() {
 
 async function AccountContent() {
   const user = await requireUser("/account");
-  const [profile, stats, searches, location] = await Promise.all([
+  const [profile, stats, searches, location, contact] = await Promise.all([
     getProfile(user.id),
     getAccountStats(user.id),
     getRecentSearches(user.id),
     getLocation(),
+    getContactStatus(),
   ]);
   const name = profile?.fullName ?? user.name ?? "";
 
@@ -85,6 +89,23 @@ async function AccountContent() {
             </div>
           </div>
           <NameForm initialName={name} />
+          {contact && (
+            <div id="sign-in-details" className="scroll-mt-20 space-y-2">
+              <p className="text-sm font-medium">Sign-in details</p>
+              {!isFullyVerified(contact) && (
+                <p className="text-xs text-muted-foreground">
+                  Verify both so you can sign in with either and keep everything in one account.
+                </p>
+              )}
+              <ContactVerification status={contact} next="/account" />
+              <Link
+                href="/forgot-password?next=/account"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+              >
+                <KeyRoundIcon className="size-4" aria-hidden /> Set or change your password
+              </Link>
+            </div>
+          )}
           <div className="space-y-2">
             <p className="text-sm font-medium">Delivery location</p>
             <div className="rounded-md border p-1">

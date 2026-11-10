@@ -3,7 +3,7 @@
 import { Loader2Icon } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { sendOtpAction, signUpAction, verifyOtpAction, type AuthChannel, type AuthResult } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -18,14 +18,18 @@ type FieldErrors = Partial<Record<"identifier" | "password" | "token" | "fullNam
 
 export function SignupForm() {
   const router = useRouter();
-  const next = useSearchParams().get("next") ?? undefined;
-  const [channel, setChannel] = useState<AuthChannel>("email");
+  const params = useSearchParams();
+  const next = params.get("next") ?? undefined;
+  // Prefilled when sign-in found no account and continued here.
+  const [channel, setChannel] = useState<AuthChannel>(params.get("channel") === "phone" ? "phone" : "email");
   const [fullName, setFullName] = useState("");
-  const [identifier, setIdentifier] = useState("");
+  const [identifier, setIdentifier] = useState(params.get("identifier") ?? "");
+  const [notice, setNotice] = useState<string | undefined>();
   const [password, setPassword] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, startTransition] = useTransition();
+  const nameId = useId();
 
   const finish = (result: AuthResult) => {
     if (!result.ok) {
@@ -33,11 +37,12 @@ export function SignupForm() {
       return;
     }
     if (result.needsVerification) {
+      setNotice(result.notice);
       setVerifying(true);
       toast.success(channel === "email" ? "Check your inbox for a 6-digit code" : "We've sent you an SMS code");
       return;
     }
-    toast.success("Account created — welcome to USC!");
+    toast.success(notice ? "Signed in to your existing account" : "Account created. Welcome to USC!");
     router.replace(result.redirectTo ?? "/");
     router.refresh();
   };
@@ -46,6 +51,7 @@ export function SignupForm() {
     return (
       <OtpStep
         destination={channel === "email" ? identifier : formatPhone(`+91${identifier.replace(/\D/g, "")}`)}
+        notice={notice}
         length={otpLengthFor(channel)}
         delivery={channel === "phone" ? "sms" : undefined}
         pending={pending}
@@ -90,16 +96,16 @@ export function SignupForm() {
           }}
         />
         <div className="space-y-1.5">
-          <Label htmlFor="full-name">Full name</Label>
+          <Label htmlFor={nameId}>Full name</Label>
           <Input
-            id="full-name"
+            id={nameId}
             autoComplete="name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             aria-invalid={Boolean(errors.fullName)}
             className="h-11"
           />
-          <FieldError id="full-name-error" message={errors.fullName} />
+          <FieldError id={`${nameId}-error`} message={errors.fullName} />
         </div>
         <IdentifierField channel={channel} value={identifier} onChange={setIdentifier} error={errors.identifier} />
         <PasswordField

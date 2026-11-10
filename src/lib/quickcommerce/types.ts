@@ -220,4 +220,9 @@ export interface Comparison {
   missing: PlatformId[];
   statuses: PlatformStatus[];
   related: Offer[];
+  /**
+   * A *different* product in the same pack size that costs less than the
+   * cheapest way to buy this one — shown as a clearly labelled alternative.
+   */
+  alternative: Offer | null;
 }

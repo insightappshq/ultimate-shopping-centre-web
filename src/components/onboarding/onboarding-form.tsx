@@ -10,15 +10,17 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { resolveCoordinatesAction, resolvePincodeAction } from "@/actions/location";
 import { completeOnboardingAction } from "@/actions/profile";
+import { ContactVerification } from "@/components/account/contact-verification";
 import { FieldError } from "@/components/auth/fields";
 import { useDeviceLocation } from "@/components/location/use-device-location";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { isFullyVerified, type ContactStatus } from "@/lib/auth/contact-types";
 import type { GeoLocation } from "@/lib/quickcommerce/types";
 import { cn } from "@/lib/utils";
 
@@ -27,12 +29,12 @@ type Source = "device" | "pincode" | "saved";
 export function OnboardingForm({
   initialName,
   initialLocation,
-  identity,
+  contact,
   next,
 }: {
   initialName: string;
   initialLocation: GeoLocation | null;
-  identity: string;
+  contact: ContactStatus;
   next?: string;
 }) {
   const router = useRouter();
@@ -46,6 +48,8 @@ export function OnboardingForm({
   const [saving, startSaving] = useTransition();
   const device = useDeviceLocation(resolveCoordinatesAction);
   const attempted = useRef(false);
+  const nameId = useId();
+  const pincodeId = useId();
 
   const detect = async () => {
     const result = await device.locate();
@@ -89,10 +93,15 @@ export function OnboardingForm({
     });
   };
 
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const fullyVerified = isFullyVerified(contact);
+
+  const submit = () => {
     if (fullName.trim().length < 2) {
       setErrors({ fullName: "Enter your full name" });
+      return;
+    }
+    if (!fullyVerified) {
+      toast.error("Verify both your email address and mobile number to continue.");
       return;
     }
     if (!location || editing) {
@@ -114,26 +123,31 @@ export function OnboardingForm({
   const detecting = device.busy;
 
   return (
-    <form onSubmit={submit} className="space-y-7" noValidate>
+    // Not a <form>: the sign-in details panel contains its own forms.
+    <div className="space-y-7">
       <div className="space-y-1.5">
-        <Label htmlFor="full-name">Full name</Label>
+        <Label htmlFor={nameId}>Full name</Label>
         <Input
-          id="full-name"
+          id={nameId}
           autoComplete="name"
           autoFocus={!initialName}
           value={fullName}
           onChange={(event) => setFullName(event.target.value)}
           aria-invalid={Boolean(errors.fullName)}
-          aria-describedby={errors.fullName ? "full-name-error" : "full-name-hint"}
+          aria-describedby={errors.fullName ? `${nameId}-error` : undefined}
           className="h-11"
           placeholder="e.g. Priya Sharma"
         />
-        <FieldError id="full-name-error" message={errors.fullName} />
-        {!errors.fullName && (
-          <p id="full-name-hint" className="text-xs text-muted-foreground">
-            Signed in as {identity}
-          </p>
-        )}
+        <FieldError id={`${nameId}-error`} message={errors.fullName} />
+      </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Sign-in details</p>
+        <p className="text-xs text-muted-foreground">
+          Verify both your email and mobile number. You can then sign in with either, and your cart and wishlist stay
+          in one account.
+        </p>
+        <ContactVerification status={contact} next={next} />
       </div>
 
       <fieldset className="space-y-3">
@@ -166,12 +180,12 @@ export function OnboardingForm({
           </div>
         ) : (
           <div className="space-y-2">
-            <Label htmlFor="pincode" className="sr-only">
+            <Label htmlFor={pincodeId} className="sr-only">
               Pincode
             </Label>
             <div className="flex gap-2">
               <Input
-                id="pincode"
+                id={pincodeId}
                 inputMode="numeric"
                 autoComplete="postal-code"
                 maxLength={6}
@@ -215,11 +229,11 @@ export function OnboardingForm({
         )}
       </fieldset>
 
-      <Button type="submit" size="xl" className="w-full" disabled={saving || detecting || lookingUp}>
+      <Button type="button" onClick={submit} size="xl" className="w-full" disabled={saving || detecting || lookingUp || !fullyVerified}>
         {saving ? <Loader2Icon className="animate-spin" data-icon="inline-start" /> : null}
         Continue to USC
         {!saving && <ArrowRightIcon data-icon="inline-end" />}
       </Button>
-    </form>
+    </div>
   );
 }

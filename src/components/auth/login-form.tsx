@@ -39,12 +39,30 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [otpSentTo, setOtpSentTo] = useState<string | null>(null);
   const [delivery, setDelivery] = useState<OtpDelivery>("sms");
+  const [notice, setNotice] = useState<string | undefined>();
+  const [wrongPassword, setWrongPassword] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [pending, startTransition] = useTransition();
 
   const finish = (result: AuthResult) => {
     if (!result.ok) {
+      if (result.code === "no_account") {
+        // Signing in to an account that doesn't exist continues as sign-up.
+        toast.info(`${result.error} Let's create one.`);
+        const query = new URLSearchParams({ channel, identifier });
+        if (next) query.set("next", next);
+        router.push(`/signup?${query}`);
+        return false;
+      }
+      setWrongPassword(result.code === "wrong_password");
       setErrors({ [result.field ?? "identifier"]: result.error });
+      return false;
+    }
+    if (result.needsVerification) {
+      // e.g. a password sign-in for an account that was never verified.
+      setNotice(result.notice);
+      setOtpSentTo(identifier);
+      setDelivery("sms");
       return false;
     }
     toast.success("Welcome to USC");
@@ -74,6 +92,7 @@ export function LoginForm() {
       }
       setOtpSentTo(target);
       setDelivery(via);
+      setNotice(undefined);
       toast.success(
         channel === "email" ? "Code sent. Check your inbox." : via === "whatsapp" ? "Code sent on WhatsApp" : "Code sent by SMS",
       );
@@ -84,6 +103,7 @@ export function LoginForm() {
     if (method === "otp") return sendCode();
     startTransition(async () => {
       setErrors({});
+      setWrongPassword(false);
       finish(await signInWithPasswordAction(channel, identifier, password, next));
     });
   };
@@ -92,6 +112,7 @@ export function LoginForm() {
     return (
       <OtpStep
         destination={channel === "email" ? otpSentTo : formatPhone(`+91${otpSentTo.replace(/\D/g, "")}`)}
+        notice={notice}
         length={otpLengthFor(channel)}
         delivery={channel === "phone" ? delivery : undefined}
         pending={pending}
@@ -145,7 +166,35 @@ export function LoginForm() {
         />
 
         {method === "password" && (
-          <PasswordField value={password} onChange={setPassword} error={errors.password} />
+          <PasswordField
+            value={password}
+            onChange={setPassword}
+            error={errors.password}
+            action={
+              <Link
+                href={`/forgot-password?${new URLSearchParams({ channel, identifier, ...(next ? { next } : {}) })}`}
+                className="text-xs font-medium text-primary hover:underline"
+              >
+                Forgot password?
+              </Link>
+            }
+          />
+        )}
+        {method === "password" && wrongPassword && (
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={pending}
+            onClick={() => {
+              setMethod("otp");
+              setWrongPassword(false);
+              sendCode(identifier);
+            }}
+          >
+            <MessageSquareTextIcon data-icon="inline-start" />
+            Send me a one-time code instead
+          </Button>
         )}
 
         <Button type="submit" size="xl" className="w-full" disabled={pending}>

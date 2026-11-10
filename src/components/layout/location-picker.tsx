@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, Loader2Icon, LocateFixedIcon, MapPinIcon, SearchIcon } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { applyDeviceLocationAction, setLocationAction, setPincodeAction } from "@/actions/location";
 import { useDeviceLocation } from "@/components/location/use-device-location";
@@ -44,6 +44,7 @@ export function LocationPicker({ location, className }: { location: GeoLocation;
   const [pending, startTransition] = useTransition();
   const [pincode, setPincode] = useState(location.pincode);
   const device = useDeviceLocation(applyDeviceLocationAction);
+  const pincodeId = useId();
 
   const done = (next: GeoLocation) => {
     toast.success(`Delivering to ${next.label} · ${next.pincode}`);
@@ -118,12 +119,12 @@ export function LocationPicker({ location, className }: { location: GeoLocation;
         </div>
 
         <form onSubmit={applyPincode} className="space-y-1.5">
-          <Label htmlFor="pincode" className="sr-only">
+          <Label htmlFor={pincodeId} className="sr-only">
             Pincode
           </Label>
           <div className="flex gap-2">
             <Input
-              id="pincode"
+              id={pincodeId}
               inputMode="numeric"
               autoComplete="postal-code"
               maxLength={6}

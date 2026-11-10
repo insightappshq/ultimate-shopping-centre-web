@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { z } from "zod";
+import { getContactStatus } from "@/lib/auth/contact";
 import { ensureProfile, requireUserForMutation } from "@/lib/auth/dal";
 import { clearSearchHistory, saveProfileLocation, updateProfileName } from "@/lib/data/profile";
 import { locationSchema } from "@/lib/location";
@@ -55,6 +56,13 @@ export async function completeOnboardingAction(input: {
   try {
     const user = await requireUserForMutation();
     const { fullName, location, next } = onboardingSchema.parse(input);
+
+    // Both identifiers must be verified so the same person can't end up with
+    // separate email and phone accounts.
+    const contact = await getContactStatus();
+    if (!contact || !contact.emailVerified || !contact.phoneVerified) {
+      return { ok: false, error: "Verify both your email address and mobile number to continue.", code: "invalid" };
+    }
 
     await ensureProfile({ ...user, name: fullName });
     await Promise.all([

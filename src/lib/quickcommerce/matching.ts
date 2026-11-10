@@ -17,13 +17,15 @@ const STOP_WORDS = new Set([
 ]);
 
 const UNIT_TOKEN = /^\d+(\.\d+)?(g|gm|gms|kg|kgs|ml|l|ltr|litre|liter|pc|pcs|n)?$/;
+/** Units written apart from their number ("5 kg") — pack size is compared separately. */
+const UNIT_WORDS = new Set(["g", "gm", "gms", "gram", "grams", "kg", "kgs", "ml", "ltr", "litre", "liter", "litres", "pc", "pcs"]);
 
 export function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .replace(/[^a-z0-9.\s]/g, " ")
     .split(/\s+/)
-    .filter((token) => token.length > 1 && !STOP_WORDS.has(token) && !UNIT_TOKEN.test(token));
+    .filter((token) => token.length > 1 && !STOP_WORDS.has(token) && !UNIT_WORDS.has(token) && !UNIT_TOKEN.test(token));
 }
 
 function tokenSet(offer: Pick<Offer, "name" | "brand">): Set<string> {
@@ -50,17 +52,26 @@ function coverage(reference: Set<string>, candidate: Set<string>): number {
  * "Salted" vs "Unsalted". That signals a different variant, not a renamed
  * listing, so the two must not be treated as the same product.
  */
-function differentVariants(a: Set<string>, b: Set<string>): boolean {
+function differentVariants(a: Set<string>, b: Set<string>, ignore: Set<string> = new Set()): boolean {
   let aOnly = false;
   let bOnly = false;
-  for (const token of a) if (!b.has(token)) aOnly = true;
-  for (const token of b) if (!a.has(token)) bOnly = true;
+  for (const token of a) if (!b.has(token) && !ignore.has(token)) aOnly = true;
+  for (const token of b) if (!a.has(token) && !ignore.has(token)) bOnly = true;
   return aOnly && bOnly;
+}
+
+/** Brand words aren't variant words: one platform may simply omit the brand from the name. */
+function brandTokens(...brands: (string | null)[]): Set<string> {
+  return new Set(tokenize(brands.filter(Boolean).join(" ")));
 }
 
 export function similarity(reference: Offer, candidate: Offer): number {
   const a = tokenSet(reference);
   const b = tokenSet(candidate);
+  // A listing without a brand is assumed to carry the other's brand, so
+  // "Lachkari Wada Kolam Rice" (no brand) can match "Daawat Lachkari…".
+  if (reference.brand && !candidate.brand) for (const t of brandTokens(reference.brand)) b.add(t);
+  if (candidate.brand && !reference.brand) for (const t of brandTokens(candidate.brand)) a.add(t);
   let score = 0.6 * dice(a, b) + 0.4 * coverage(a, b);
 
   if (reference.brand && candidate.brand) {
@@ -73,26 +84,42 @@ export function similarity(reference: Offer, candidate: Offer): number {
   if (qa && qb) score = qa === qb ? score + 0.1 : Math.min(score, 0.55) - 0.1;
 
   // A different variant can still be shown as "similar", never as the same product.
-  if (differentVariants(a, b)) score = Math.min(score, EXACT_THRESHOLD - 0.01);
+  if (differentVariants(a, b, brandTokens(reference.brand, candidate.brand))) {
+    score = Math.min(score, EXACT_THRESHOLD - 0.01);
+  }
 
   return Math.max(0, Math.min(1, score));
 }
 
 const EXACT_THRESHOLD = 0.72;
+/** Loose enough to catch "another brand of 5 kg rice", tight enough to skip unrelated items. */
+const ALTERNATIVE_THRESHOLD = 0.15;
 const SIMILAR_THRESHOLD = 0.5;
 
 /** Best listing per platform for the reference product. */
 export function matchAcrossPlatforms(
   reference: Offer,
   candidates: Offer[],
-): { rows: ComparisonRow[]; related: Offer[] } {
+): { rows: ComparisonRow[]; related: Offer[]; alternative: Offer | null } {
   const bestByPlatform = new Map<PlatformId, ComparisonRow>();
   const related: { offer: Offer; score: number }[] = [];
+  const packKey = quantityKey(reference.quantity);
+  const alternatives: Offer[] = [];
 
   // Candidates may come from overlapping searches, so the same listing can repeat.
   for (const offer of uniqueBy(candidates, (o) => o.listingId)) {
     if (offer.key === reference.key) continue;
     const score = similarity(reference, offer);
+    // Same pack size, at least loosely the same kind of product (e.g. "rice").
+    if (
+      score < EXACT_THRESHOLD &&
+      score >= ALTERNATIVE_THRESHOLD &&
+      offer.available &&
+      packKey !== null &&
+      quantityKey(offer.quantity) === packKey
+    ) {
+      alternatives.push(offer);
+    }
     if (score >= SIMILAR_THRESHOLD) {
       const current = bestByPlatform.get(offer.platform);
       const better =
@@ -117,8 +144,14 @@ export function matchAcrossPlatforms(
     ...bestByPlatform.values(),
   ].filter((row, index, all) => all.findIndex((r) => r.offer.platform === row.offer.platform) === index);
 
+  const sorted = rows.sort((a, b) => effectivePrice(a.offer) - effectivePrice(b.offer));
+  const lowestExact = sorted.find((row) => row.match === "exact" && row.offer.available)?.offer.price ?? Infinity;
+  const alternative =
+    alternatives.filter((o) => o.price < lowestExact).sort((a, b) => a.price - b.price)[0] ?? null;
+
   return {
-    rows: rows.sort((a, b) => effectivePrice(a.offer) - effectivePrice(b.offer)),
+    rows: sorted,
+    alternative,
     related: related
       .sort((a, b) => b.score - a.score)
       .slice(0, 12)
@@ -149,7 +182,7 @@ export function groupOffers(offers: Offer[]): ProductGroup[] {
     for (const group of groups) {
       if (group.offers.some((o) => o.platform === offer.platform)) continue;
       if (qty && group.qty && qty !== group.qty) continue;
-      if (differentVariants(group.tokens, tokens)) continue;
+      if (differentVariants(group.tokens, tokens, brandTokens(group.seed.brand, offer.brand))) continue;
       const score = 0.6 * dice(group.tokens, tokens) + 0.4 * coverage(group.tokens, tokens);
       if (score >= GROUP_THRESHOLD && score > bestScore) {
         bestScore = score;

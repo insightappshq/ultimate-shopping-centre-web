@@ -1,11 +1,13 @@
 import { CheckIcon, InfoIcon, SearchXIcon } from "lucide-react";
 import Link from "next/link";
+import { Fragment } from "react";
 import { PlatformLogo } from "@/components/brand/platform-logo";
 import { PLATFORMS } from "@/config/platforms";
 import { toSnapshot } from "@/lib/data/schemas";
 import { formatPrice } from "@/lib/format";
 import { exactRows } from "@/lib/quickcommerce/matching";
-import type { Comparison, ComparisonRow } from "@/lib/quickcommerce/types";
+import type { Comparison, ComparisonRow, Offer } from "@/lib/quickcommerce/types";
+import { quantityKey } from "@/lib/quickcommerce/units";
 import { productHref } from "@/lib/routes";
 import { cn } from "@/lib/utils";
 import { AddToCartButton } from "./add-to-cart-button";
@@ -19,16 +21,21 @@ interface Props {
   cartKeys: Set<string>;
 }
 
-function MatchLabel({ row, isReference }: { row: ComparisonRow; isReference: boolean }) {
-  if (isReference) return <span className="text-xs text-muted-foreground">This listing</span>;
-  return row.match === "exact" ? (
-    <span className="inline-flex items-center gap-1 text-xs text-success">
-      <CheckIcon className="size-3" aria-hidden /> Same product
-    </span>
-  ) : (
-    <span className="text-xs text-warning" title="Closest match — pack size or variant may differ">
-      Similar, check pack size
-    </span>
+function MatchLabel({ row, reference }: { row: ComparisonRow; reference: Offer }) {
+  if (row.offer.listingId === reference.listingId) {
+    return <span className="text-xs text-muted-foreground">This listing</span>;
+  }
+  if (row.match === "exact") {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-success">
+        <CheckIcon className="size-3" aria-hidden /> Same product
+      </span>
+    );
+  }
+  // Say what actually differs, so "similar" isn't mistaken for the same item.
+  const samePack = quantityKey(row.offer.quantity) !== null && quantityKey(row.offer.quantity) === quantityKey(reference.quantity);
+  return (
+    <span className="text-xs text-warning">{samePack ? "Different product, same pack size" : "Different pack size or variant"}</span>
   );
 }
 
@@ -39,6 +46,10 @@ function MatchLabel({ row, isReference }: { row: ComparisonRow; isReference: boo
  */
 export function PriceComparison({ comparison, query, cartKeys }: Props) {
   const { rows, reference, missing } = comparison;
+  // Same product first (where "lowest price" is meaningful), then similar items.
+  const ordered = [...rows.filter((r) => r.match === "exact"), ...rows.filter((r) => r.match !== "exact")];
+  const similarStart = ordered.findIndex((r) => r.match !== "exact");
+  const similarLabel = "Similar products, different brand, variant or pack";
   const exact = exactRows(rows);
   const lowest = exact[0]?.offer ?? rows.find((row) => row.offer.available)?.offer;
   const highestExact = exact.length ? Math.max(...exact.map((row) => row.offer.price)) : 0;
@@ -66,13 +77,20 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y">
-            {rows.map((row) => {
+            {ordered.map((row, index) => {
               const { offer } = row;
               const isLowest = offer.listingId === lowest?.listingId;
               const extra = extraFor(row);
               return (
+                <Fragment key={offer.listingId}>
+                {index === similarStart && (
+                  <tr>
+                    <th colSpan={5} scope="rowgroup" className="bg-muted/50 px-4 py-2 text-left text-xs font-medium text-muted-foreground">
+                      {similarLabel}
+                    </th>
+                  </tr>
+                )}
                 <tr
-                  key={offer.listingId}
                   className={cn("align-middle", isLowest && "bg-success-subtle/50 shadow-[inset_3px_0_0_var(--success)]")}
                 >
                   <td className="px-4 py-3">
@@ -93,7 +111,7 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
                     </Link>
                     <div className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                       {offer.quantity && <span>{offer.quantity}</span>}
-                      <MatchLabel row={row} isReference={offer.listingId === reference.listingId} />
+                      <MatchLabel row={row} reference={reference} />
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -132,6 +150,7 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
                     </div>
                   </td>
                 </tr>
+                </Fragment>
               );
             })}
           </tbody>
@@ -140,13 +159,16 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
 
       {/* Mobile */}
       <ul className="divide-y overflow-hidden rounded-lg border bg-card md:hidden">
-        {rows.map((row) => {
+        {ordered.map((row, index) => {
           const { offer } = row;
           const isLowest = offer.listingId === lowest?.listingId;
           const extra = extraFor(row);
           return (
+            <Fragment key={offer.listingId}>
+            {index === similarStart && (
+              <li className="bg-muted/50 px-3 py-2 text-xs font-medium text-muted-foreground">{similarLabel}</li>
+            )}
             <li
-              key={offer.listingId}
               className={cn("p-3", isLowest && "bg-success-subtle/50 shadow-[inset_3px_0_0_var(--success)]")}
             >
               <div className="flex items-start gap-3">
@@ -165,7 +187,7 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
                     {isLowest ? (
                       <span className="text-xs font-semibold text-success">Lowest price</span>
                     ) : (
-                      <MatchLabel row={row} isReference={offer.listingId === reference.listingId} />
+                      <MatchLabel row={row} reference={reference} />
                     )}
                     {extra > 0 && <span className="text-xs text-muted-foreground tabular">+{formatPrice(extra)}</span>}
                     {!offer.available && <StockStatus available={false} />}
@@ -183,6 +205,7 @@ export function PriceComparison({ comparison, query, cartKeys }: Props) {
                 />
               </div>
             </li>
+            </Fragment>
           );
         })}
       </ul>

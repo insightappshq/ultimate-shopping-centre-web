@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGridIcon, Rows3Icon, SlidersHorizontalIcon, XIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, LayoutGridIcon, Rows3Icon, SlidersHorizontalIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -15,6 +15,7 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { PLATFORMS, PLATFORM_LIST } from "@/config/platforms";
 import { formatPrice } from "@/lib/format";
+import { pageItems } from "@/lib/pagination";
 import { SORT_OPTIONS, type SearchFacets, type SortOption } from "@/lib/quickcommerce/filters";
 import type { PlatformStatus } from "@/lib/quickcommerce/types";
 import { FiltersPanel } from "./filters-panel";
@@ -155,35 +156,39 @@ export function Pagination({ page, pageCount }: { page: number; pageCount: numbe
   const { update } = useSearchState();
   if (pageCount <= 1) return null;
 
-  const pages = Array.from({ length: pageCount }, (_, i) => i + 1).filter(
-    (p) => p === 1 || p === pageCount || Math.abs(p - page) <= 1,
-  );
-
   const go = (p: number) => {
     update({ page: p });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
-    <nav aria-label="Pagination" className="flex items-center justify-center gap-1.5 pt-6">
-      <Button variant="outline" size="lg" disabled={page <= 1} onClick={() => go(page - 1)}>
-        Previous
+    <nav aria-label="Pagination" className="flex flex-wrap items-center justify-center gap-1 pt-6 sm:gap-1.5">
+      <Button variant="outline" disabled={page <= 1} onClick={() => go(page - 1)} aria-label="Previous page">
+        <ChevronLeftIcon data-icon="inline-start" />
+        <span className="hidden sm:inline">Previous</span>
       </Button>
-      {pages.map((p, i) => (
-        <span key={p} className="flex items-center gap-1.5">
-          {i > 0 && p - pages[i - 1] > 1 && <span className="px-1 text-muted-foreground">…</span>}
+      {pageItems(page, pageCount).map((item, index) =>
+        item === "gap" ? (
+          <span key={`gap-${index}`} className="px-1 text-muted-foreground" aria-hidden>
+            …
+          </span>
+        ) : (
           <Button
-            variant={p === page ? "default" : "ghost"}
-            size="icon-lg"
-            aria-current={p === page ? "page" : undefined}
-            onClick={() => go(p)}
+            key={item}
+            variant={item === page ? "default" : "ghost"}
+            size="icon"
+            className="tabular"
+            aria-label={`Page ${item}`}
+            aria-current={item === page ? "page" : undefined}
+            onClick={() => go(item)}
           >
-            {p}
+            {item}
           </Button>
-        </span>
-      ))}
-      <Button variant="outline" size="lg" disabled={page >= pageCount} onClick={() => go(page + 1)}>
-        Next
+        ),
+      )}
+      <Button variant="outline" disabled={page >= pageCount} onClick={() => go(page + 1)} aria-label="Next page">
+        <span className="hidden sm:inline">Next</span>
+        <ChevronRightIcon data-icon="inline-end" />
       </Button>
     </nav>
   );

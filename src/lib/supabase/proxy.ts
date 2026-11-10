@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isSupabaseConfigured, supabaseConfig } from "./config";
 
 /** Pages anyone can open. Everything else requires a signed-in shopper. */
-const PUBLIC_PAGES = new Set(["/", "/terms", "/cookies"]);
+const PUBLIC_PAGES = new Set(["/", "/terms", "/cookies", "/forgot-password"]);
 /** Sign-in pages: signed-in users are sent on into the app. */
 const AUTH_PAGES = new Set(["/login", "/signup"]);
 /** Prefixes that handle their own auth (callbacks, webhooks, health checks). */
@@ -20,7 +20,8 @@ function safeNext(value: string | null): string | null {
  * Runs on every request:
  *  1. refreshes the Supabase session cookie;
  *  2. gates the app behind sign-in (pages redirect to /login, APIs get 401);
- *  3. sends shoppers who haven't completed their profile to /onboarding.
+ *  3. sends shoppers who haven't completed their profile — or haven't verified
+ *     both their email and mobile number — to /onboarding.
  *
  * These are optimistic checks for routing. Data access is still authorised
  * server-side in the DAL (`src/lib/auth/dal.ts`).
@@ -50,7 +51,12 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const claims = data?.claims;
   const isSignedIn = Boolean(claims?.sub);
-  const onboarded = Boolean((claims?.user_metadata as Record<string, unknown> | undefined)?.onboarded);
+  // Using the app requires a completed profile and BOTH identifiers verified.
+  // JWT claims only carry an email/phone once it has been confirmed.
+  const onboarded =
+    Boolean((claims?.user_metadata as Record<string, unknown> | undefined)?.onboarded) &&
+    Boolean(claims?.email) &&
+    Boolean(claims?.phone);
   const { pathname, search } = request.nextUrl;
 
   const redirectTo = (pathnameTo: string, query = "") => {
@@ -86,7 +92,14 @@ export async function updateSession(request: NextRequest) {
     return redirectTo("/login", `?next=${encodeURIComponent(pathname + search)}`);
   }
 
-  if (!onboarded && pathname !== ONBOARDING && !pathname.startsWith("/api/")) {
+  // Session info stays readable so clients can tell *why* they're being held at onboarding.
+  if (!onboarded && pathname !== ONBOARDING && pathname !== "/api/me") {
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json(
+        { error: { code: "verification_required", message: "Verify both your email and mobile number first." } },
+        { status: 403 },
+      );
+    }
     return redirectTo(ONBOARDING, `?next=${encodeURIComponent(pathname + search)}`);
   }
 

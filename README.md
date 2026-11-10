@@ -44,6 +44,33 @@ If `QUICKCOMMERCE_API_KEY` is not set, the app uses a built-in **sample catalogu
 - **Signed in only:** everything else — search, product pages, cart, wishlist, account — and the REST API. Signed-out page requests redirect to `/login?next=…`; API requests get `401`. The proxy (`src/proxy.ts`) handles the routing, and the data access layer re-checks the session on the server.
 - **Onboarding:** after signup or first sign-in, shoppers complete their profile at `/onboarding`: their name, and a delivery pincode detected from their device location and confirmed by them. Completion is stored as `user_metadata.onboarded` on the Supabase user, so the proxy can enforce it without a database query.
 
+## One account per person (email + phone)
+
+Shoppers sign in with **either** email or mobile, but every account must have **both verified**. That way the same person can't end up with one account per identifier.
+
+- **Onboarding** shows a "Sign-in details" panel. The identifier they signed in with is already verified; they add the other and confirm it with a code. Under the hood this is Supabase's `updateUser({ email | phone })`, then `verifyOtp` with type `email_change` or `phone_change`. Codes go out by Resend email or Twilio Verify SMS. Onboarding can't finish, and the server rejects it, until both are verified.
+- **Existing accounts** missing one identifier see a prompt on `/home`, and can verify from **Account → Sign-in details**.
+- **Collisions.** Supabase won't let an email or number sit on two accounts (`email_exists` / `phone_exists`). When that happens, the shopper is told the identifier already has an account, and one of two things follows:
+  - With `SUPABASE_SERVICE_ROLE_KEY` set, they can **combine accounts**. They confirm the other account with a code, sent through a separate cookie-less client so the current session is untouched. Then:
+    1. cart, wishlist and searches move to the older account (`src/lib/data/merge.ts`);
+    2. the duplicate is deleted;
+    3. its verified identifier is attached to the older account;
+    4. the shopper continues signed in as that account.
+  - Without the key, they're asked to sign in with the existing account instead.
+
+**Sign-in and sign-up edge cases.** Account existence is looked up server-side in `auth.users` (`src/lib/auth/accounts.ts`), because Supabase deliberately hides it:
+
+| Situation | What happens |
+| --- | --- |
+| Password sign-in, no account | Continues to sign-up with the email or number prefilled |
+| Password sign-in, wrong password, or an account with no password | Says so, and offers "Send me a one-time code instead" |
+| Password sign-in, account never verified | Sends a fresh code and shows the code screen |
+| Sign-up with an email or number that already has an account | "You already have a USC account…": a code signs them into it, and onboarding asks for whatever is missing |
+| Code sign-in with an unknown email or number | Creates the account, then onboarding |
+| Signed in but email or phone not verified | Every app page redirects to `/onboarding`; APIs return `403 verification_required` (`/api/me` stays readable) |
+
+Implementation: `src/actions/contact.ts`, `src/lib/auth/contact.ts` and `src/components/account/contact-verification.tsx`.
+
 ## Location and pincode detection
 
 The delivery pincode comes from the device's location: the browser's geolocation is reverse-geocoded to a pincode. Typing a pincode works the other way, turning it into coordinates and an area name. Both are implemented in `src/lib/geo.ts`, using:

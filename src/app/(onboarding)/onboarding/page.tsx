@@ -2,10 +2,11 @@ import { UserRoundCheckIcon } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
+import { redirect } from "next/navigation";
+import { getContactStatus } from "@/lib/auth/contact";
 import { requireUser } from "@/lib/auth/dal";
 import { getProfile } from "@/lib/data/profile";
 import { fallbackTo } from "@/lib/errors";
-import { formatPhone } from "@/lib/format";
 import type { GeoLocation } from "@/lib/quickcommerce/types";
 
 export const metadata: Metadata = { title: "Set up your profile", robots: { index: false } };
@@ -19,7 +20,7 @@ export default function OnboardingPage({ searchParams }: PageProps<"/onboarding"
         </span>
         <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Let&apos;s set up your profile</h1>
         <p className="mt-1.5 text-sm text-muted-foreground sm:text-base">
-          Two quick details and you&apos;re in. We&apos;ll use them to personalise prices, stock and delivery times for
+          A few quick details and you&apos;re in. We&apos;ll use them to personalise prices, stock and delivery times for
           you.
         </p>
         <div className="mt-8">
@@ -37,7 +38,8 @@ export default function OnboardingPage({ searchParams }: PageProps<"/onboarding"
 
 async function OnboardingContent({ searchParams }: { searchParams: PageProps<"/onboarding">["searchParams"] }) {
   const [user, { next }] = await Promise.all([requireUser("/onboarding"), searchParams]);
-  const profile = await getProfile(user.id).catch(fallbackTo(null));
+  const [profile, contact] = await Promise.all([getProfile(user.id).catch(fallbackTo(null)), getContactStatus()]);
+  if (!contact) redirect("/login?next=/onboarding");
 
   const saved: GeoLocation | null =
     profile?.pincode && profile.latitude !== null && profile.longitude !== null
@@ -48,7 +50,7 @@ async function OnboardingContent({ searchParams }: { searchParams: PageProps<"/o
     <OnboardingForm
       initialName={profile?.fullName ?? user.name ?? ""}
       initialLocation={saved}
-      identity={user.email ?? (user.phone ? formatPhone(user.phone) : "your account")}
+      contact={contact}
       next={typeof next === "string" ? next : undefined}
     />
   );

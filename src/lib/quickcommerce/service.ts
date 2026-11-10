@@ -176,7 +176,7 @@ export async function compareProduct(
   const primaryQuery = options.searchQuery?.trim() || comparisonQuery(reference);
 
   let result = await searchProducts(primaryQuery, platforms, location);
-  let { rows, related } = matchAcrossPlatforms(reference, result.offers);
+  let { rows, related, alternative } = matchAcrossPlatforms(reference, result.offers);
 
   // The original search may have been broad ("milk"); retry the platforms that
   // found nothing comparable with a precise, product-specific query.
@@ -188,6 +188,7 @@ export async function compareProduct(
     const merged = matchAcrossPlatforms(reference, [...result.offers, ...second.offers]);
     rows = merged.rows;
     related = merged.related;
+    alternative = merged.alternative;
     result = {
       ...result,
       statuses: result.statuses.map((s) => second.statuses.find((t) => t.platform === s.platform) ?? s),
@@ -199,6 +200,7 @@ export async function compareProduct(
     reference,
     rows,
     related,
+    alternative,
     missing: platforms.filter((p) => !matched.has(p)),
     statuses: result.statuses,
   };

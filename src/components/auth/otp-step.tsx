@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeftIcon, Loader2Icon, MessageCircleIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { authConfig, type OtpDelivery } from "@/config/auth";
@@ -9,6 +9,7 @@ import { FieldError } from "./fields";
 
 export function OtpStep({
   destination,
+  notice,
   length = 6,
   delivery,
   pending,
@@ -18,6 +19,8 @@ export function OtpStep({
   onBack,
 }: {
   destination: string;
+  /** Context shown above the prompt, e.g. "You already have an account…". */
+  notice?: string;
   /** Digits in the code: 6 for email; the Twilio Verify service's length for phone. */
   length?: number;
   /** Set for phone codes: how the last code was sent, enabling "send via WhatsApp/SMS instead". */
@@ -29,6 +32,7 @@ export function OtpStep({
   onBack: () => void;
 }) {
   const [code, setCode] = useState("");
+  const errorId = useId();
   const [seconds, setSeconds] = useState<number>(authConfig.resendSeconds);
 
   useEffect(() => {
@@ -63,6 +67,11 @@ export function OtpStep({
         >
           <ArrowLeftIcon className="size-4" /> Change
         </button>
+        {notice && (
+          <p className="mb-3 rounded-md border border-primary/20 bg-secondary px-3 py-2.5 text-sm text-secondary-foreground" role="status">
+            {notice}
+          </p>
+        )}
         <p className="text-sm text-muted-foreground">
           Enter the {length}-digit code sent {sentVia} <strong className="whitespace-nowrap text-foreground">{destination}</strong>
         </p>
@@ -79,6 +88,7 @@ export function OtpStep({
           autoComplete="one-time-code"
           aria-label="One-time code"
           aria-invalid={Boolean(error)}
+          aria-describedby={error ? errorId : undefined}
           containerClassName="justify-center"
         >
           <InputOTPGroup>
@@ -87,7 +97,7 @@ export function OtpStep({
             ))}
           </InputOTPGroup>
         </InputOTP>
-        <FieldError id="otp-error" message={error} />
+        <FieldError id={errorId} message={error} />
       </div>
 
       <Button type="submit" size="xl" className="w-full" disabled={pending || code.length !== length}>

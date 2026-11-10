@@ -74,9 +74,9 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
   const groups = groupSpecs([...glance, ...info.specifications]);
 
   return (
-    <section aria-labelledby="details-heading" className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
+    <section aria-label="About this product" className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
       <div className="space-y-5">
-        <SectionHeader title={<span id="details-heading">About this product</span>} className="mb-0" />
+        <SectionHeader title="About this product" className="mb-0" />
 
         {info.highlights.length > 0 && (
           <ul className="list-disc space-y-1 pl-5 text-sm">

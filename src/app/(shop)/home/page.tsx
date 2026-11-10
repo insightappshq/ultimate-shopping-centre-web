@@ -1,10 +1,11 @@
-import { ArrowRightIcon, ClockIcon, HeartIcon, ShoppingCartIcon } from "lucide-react";
+import { ArrowRightIcon, ClockIcon, HeartIcon, ShieldAlertIcon, ShoppingCartIcon } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { PlatformLogo } from "@/components/brand/platform-logo";
 import { SectionHeader } from "@/components/common/page-header";
 import { SearchBar, SearchBarFallback } from "@/components/layout/search-bar";
+import { Button } from "@/components/ui/button";
 import { categories } from "@/config/categories";
 import { PLATFORM_LIST } from "@/config/platforms";
 import { popularSearches } from "@/config/site";
@@ -20,6 +21,10 @@ export default function AppHomePage() {
   return (
     <div className="container-page space-y-10 py-6 sm:py-10">
       {/* Never add overflow-hidden here: it would clip the search suggestions dropdown. */}
+      <Suspense fallback={null}>
+        <VerificationPrompt />
+      </Suspense>
+
       <section className="relative z-10 border-b pb-8">
         <div className="max-w-2xl">
           <Suspense fallback={<div className="h-9 w-64 animate-pulse rounded bg-muted" />}>
@@ -158,5 +163,27 @@ async function QuickLinks() {
         </Link>
       ))}
     </section>
+  );
+}
+
+/** Shoppers onboarded before dual verification existed are asked to finish it. */
+async function VerificationPrompt() {
+  const user = await requireUser("/home");
+  // JWT claims only carry an email/phone once it's confirmed, so this needs no extra request.
+  const missing = !user.email ? "email address" : !user.phone ? "mobile number" : null;
+  if (!missing) return null;
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-warning/40 bg-warning-subtle p-4 sm:flex-row sm:items-center sm:justify-between">
+      <p className="flex items-start gap-2.5 text-sm">
+        <ShieldAlertIcon className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden />
+        <span>
+          <strong className="font-semibold">Verify your {missing}</strong> so you can sign in with either and keep
+          one account.
+        </span>
+      </p>
+      <Button asChild size="sm" variant="outline" className="shrink-0">
+        <Link href="/account#sign-in-details">Verify now</Link>
+      </Button>
+    </div>
   );
 }

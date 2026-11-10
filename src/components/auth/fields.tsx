@@ -2,7 +2,7 @@
 
 import { EyeIcon, EyeOffIcon, MailIcon, SmartphoneIcon } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useId, useState } from "react";
 import type { AuthChannel } from "@/actions/auth";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,7 +46,7 @@ export function IdentifierField({
   error?: string;
   autoFocus?: boolean;
 }) {
-  const id = `identifier-${channel}`;
+  const id = `${useId()}-identifier`;
   return (
     <div className="space-y-1.5">
       <Label htmlFor={id}>{channel === "email" ? "Email address" : "Mobile number"}</Label>
@@ -106,21 +106,22 @@ export function PasswordField({
   action?: React.ReactNode;
 }) {
   const [visible, setVisible] = useState(false);
+  const id = useId();
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label htmlFor="password">{label}</Label>
+        <Label htmlFor={id}>{label}</Label>
         {action}
       </div>
       <div className="relative">
         <Input
-          id="password"
+          id={id}
           type={visible ? "text" : "password"}
           autoComplete={autoComplete}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           aria-invalid={Boolean(error)}
-          aria-describedby={error ? "password-error" : undefined}
+          aria-describedby={error ? `${id}-error` : undefined}
           className="h-11 pr-11"
         />
         <button
@@ -132,7 +133,7 @@ export function PasswordField({
           {visible ? <EyeOffIcon className="size-4" /> : <EyeIcon className="size-4" />}
         </button>
       </div>
-      <FieldError id="password-error" message={error} />
+      <FieldError id={`${id}-error`} message={error} />
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2Icon } from "lucide-react";
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { clearSearchHistoryAction, updateNameAction } from "@/actions/profile";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 export function NameForm({ initialName }: { initialName: string }) {
   const [name, setName] = useState(initialName);
   const [pending, startTransition] = useTransition();
+  const nameId = useId();
 
   return (
     <form
@@ -24,9 +25,9 @@ export function NameForm({ initialName }: { initialName: string }) {
         });
       }}
     >
-      <Label htmlFor="full-name">Full name</Label>
+      <Label htmlFor={nameId}>Full name</Label>
       <div className="flex gap-2">
-        <Input id="full-name" value={name} onChange={(e) => setName(e.target.value)} className="h-9" autoComplete="name" />
+        <Input id={nameId} value={name} onChange={(e) => setName(e.target.value)} className="h-9" autoComplete="name" />
         <Button type="submit" size="lg" disabled={pending || name.trim() === initialName}>
           {pending && <Loader2Icon className="animate-spin" data-icon="inline-start" />}
           Save
