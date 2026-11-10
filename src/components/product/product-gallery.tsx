@@ -9,7 +9,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
   const current = images[active] ?? null;
 
   return (
-    <div className="flex flex-col-reverse gap-3 sm:flex-row">
+    <div className="flex min-w-0 flex-col-reverse gap-3 sm:flex-row">
       {images.length > 1 && (
         <ul className="scrollbar-none flex gap-2 overflow-x-auto sm:max-h-[28rem] sm:flex-col sm:overflow-y-auto" aria-label="Product images">
           {images.slice(0, 8).map((src, index) => (
@@ -20,7 +20,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
                 aria-label={`Show image ${index + 1}`}
                 aria-current={index === active}
                 className={cn(
-                  "relative block size-16 overflow-hidden rounded-xl border-2 bg-white transition",
+                  "relative block size-16 overflow-hidden rounded-md border-2 bg-white transition",
                   index === active ? "border-primary" : "border-transparent opacity-70 hover:opacity-100",
                 )}
               >
@@ -30,7 +30,7 @@ export function ProductGallery({ images, name }: { images: string[]; name: strin
           ))}
         </ul>
       )}
-      <div className="relative aspect-square w-full overflow-hidden rounded-2xl border bg-white">
+      <div className="relative aspect-square w-full overflow-hidden rounded-lg border bg-white">
         <ProductImage src={current} alt={name} sizes="(max-width: 1024px) 100vw, 520px" priority className="p-6" />
       </div>
     </div>

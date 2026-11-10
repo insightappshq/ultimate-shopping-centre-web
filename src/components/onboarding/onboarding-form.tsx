@@ -143,16 +143,16 @@ export function OnboardingForm({
         </p>
 
         {detecting ? (
-          <div className="flex items-center gap-3 rounded-xl border border-primary/30 bg-secondary/50 p-4 text-sm" role="status">
+          <div className="flex items-center gap-3 rounded-md border border-primary/30 bg-secondary/50 p-4 text-sm" role="status">
             <Loader2Icon className="size-5 animate-spin text-primary" aria-hidden />
             {device.status === "locating" ? "Detecting your location…" : "Finding your pincode…"}
           </div>
         ) : location && !editing ? (
-          <div className="flex items-start gap-3 rounded-xl border border-success/40 bg-success-subtle/60 p-4">
+          <div className="flex items-start gap-3 rounded-md border border-success/40 bg-success-subtle/60 p-4">
             <MapPinIcon className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
             <div className="min-w-0 flex-1">
               <p className="flex flex-wrap items-baseline gap-x-2 font-semibold">
-                <span className="font-heading text-lg tabular">{location.pincode}</span>
+                <span className="price text-lg">{location.pincode}</span>
                 <span className="truncate text-sm font-medium text-muted-foreground">{location.label}</span>
               </p>
               <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-success">

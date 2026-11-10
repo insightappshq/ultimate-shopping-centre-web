@@ -18,14 +18,10 @@ export const metadata: Metadata = { title: "Home", robots: { index: false } };
 
 export default function AppHomePage() {
   return (
-    <div className="container-page space-y-12 py-8 sm:py-10">
-      {/* No overflow-hidden here: it would clip the search suggestions dropdown.
-          Only the decorative glow layer is clipped to the card's rounded corners. */}
-      <section className="relative z-10 rounded-3xl border bg-gradient-to-br from-secondary via-card to-card p-6 shadow-card sm:p-10">
-        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
-          <div className="absolute -top-24 -right-16 size-72 rounded-full bg-primary/10 blur-3xl" />
-        </div>
-        <div className="relative max-w-2xl">
+    <div className="container-page space-y-10 py-6 sm:py-10">
+      {/* Never add overflow-hidden here: it would clip the search suggestions dropdown. */}
+      <section className="relative z-10 border-b pb-8">
+        <div className="max-w-2xl">
           <Suspense fallback={<div className="h-9 w-64 animate-pulse rounded bg-muted" />}>
             <Greeting />
           </Suspense>
@@ -33,8 +29,8 @@ export default function AppHomePage() {
             Search once to compare live prices, stock and delivery times across {PLATFORM_LIST.length} platforms.
           </p>
           <div className="mt-6">
-            <Suspense fallback={<SearchBarFallback />}>
-              <SearchBar autoFocus />
+            <Suspense fallback={<SearchBarFallback variant="prominent" />}>
+              <SearchBar autoFocus variant="prominent" />
             </Suspense>
           </div>
           <Suspense fallback={<div className="mt-4 h-7" />}>
@@ -45,33 +41,31 @@ export default function AppHomePage() {
 
       <section>
         <SectionHeader title="Shop by category" description="Start a comparison with one tap." />
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
+        <ul className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {categories.map((category) => (
             <li key={category.label}>
               <Link
                 href={searchHref(category.query)}
-                className="group flex h-full flex-col items-center gap-2.5 rounded-2xl border bg-card p-4 text-center shadow-card transition hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-elevated"
+                className="flex h-full items-center gap-3 rounded-lg border bg-card px-3 py-3 text-sm font-medium transition-colors hover:border-foreground/25"
               >
-                <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-                  <category.icon className="size-6" strokeWidth={1.75} aria-hidden />
-                </span>
-                <span className="text-sm font-medium">{category.label}</span>
+                <category.icon className="size-5 shrink-0 text-primary" strokeWidth={1.75} aria-hidden />
+                <span className="min-w-0 truncate">{category.label}</span>
               </Link>
             </li>
           ))}
         </ul>
       </section>
 
-      <Suspense fallback={<div className="grid gap-4 sm:grid-cols-2"><div className="h-28 animate-pulse rounded-2xl bg-muted" /><div className="h-28 animate-pulse rounded-2xl bg-muted" /></div>}>
+      <Suspense fallback={<div className="grid gap-4 sm:grid-cols-2"><div className="h-28 animate-pulse rounded-lg bg-muted" /><div className="h-28 animate-pulse rounded-lg bg-muted" /></div>}>
         <QuickLinks />
       </Suspense>
 
       <section>
         <SectionHeader title="Platforms we compare" description="Availability depends on your pincode." />
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+        <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-4 lg:grid-cols-7">
           {PLATFORM_LIST.map((platform) => (
-            <li key={platform.id} className="flex items-center gap-3 rounded-2xl border bg-card p-3 shadow-card">
-              <PlatformLogo platform={platform.id} size="lg" />
+            <li key={platform.id} className="flex items-center gap-2.5 bg-card p-3">
+              <PlatformLogo platform={platform.id} size="md" />
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{platform.shortName}</p>
                 <p className="text-xs text-muted-foreground">{platform.typicalEta}</p>
@@ -88,7 +82,7 @@ async function Greeting() {
   const user = await requireUser("/home");
   const firstName = user.name?.trim().split(/\s+/)[0];
   return (
-    <h1 className="text-3xl font-bold sm:text-4xl">
+    <h1 className="text-[2rem] sm:text-[2.5rem]">
       {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
     </h1>
   );
@@ -110,14 +104,14 @@ async function SearchShortcuts() {
           <Link
             key={term}
             href={searchHref(term)}
-            className="rounded-full border bg-card px-3 py-1 text-xs font-medium capitalize transition hover:border-primary hover:text-primary"
+            className="inline-flex h-7 items-center rounded-md border bg-card px-2.5 text-xs font-medium capitalize transition-colors hover:border-foreground/30"
           >
             {term}
           </Link>
         ))}
       </div>
       <p className="text-xs text-muted-foreground">
-        Showing prices for <span className="font-medium text-foreground">{location.label}</span> ·{" "}
+        Showing prices for <span className="font-medium text-foreground">{location.label}</span>,{" "}
         <span className="font-medium text-foreground tabular">{location.pincode}</span>
       </p>
     </div>
@@ -146,14 +140,14 @@ async function QuickLinks() {
     },
   ];
   return (
-    <section className="grid gap-4 sm:grid-cols-2" aria-label="Your lists">
+    <section className="grid gap-2 sm:grid-cols-2 sm:gap-3" aria-label="Your lists">
       {links.map((link) => (
         <Link
           key={link.href}
           href={link.href}
-          className="group flex items-center gap-4 rounded-2xl border bg-card p-5 shadow-card transition hover:border-primary/40 hover:shadow-elevated"
+          className="group flex items-center gap-4 rounded-lg border bg-card p-4 transition-colors hover:border-foreground/25"
         >
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary">
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-secondary text-primary">
             <link.icon className="size-5" aria-hidden />
           </span>
           <span className="min-w-0 flex-1">

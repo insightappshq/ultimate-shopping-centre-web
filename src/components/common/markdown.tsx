@@ -31,7 +31,7 @@ export function Markdown({ source, className }: { source: string; className?: st
           h2: ({ children }) => <h2 id={slugify(textOf(children))}>{children}</h2>,
           h3: ({ children }) => <h3 id={slugify(textOf(children))}>{children}</h3>,
           table: ({ children }) => (
-            <div className="not-prose my-6 overflow-x-auto rounded-xl border">
+            <div className="not-prose my-6 overflow-x-auto rounded-md border">
               <table className="w-full text-left text-sm [&_td]:border-t [&_td]:px-4 [&_td]:py-2.5 [&_td]:align-top [&_td]:text-muted-foreground [&_th]:bg-muted/60 [&_th]:px-4 [&_th]:py-2.5 [&_th]:font-semibold">
                 {children}
               </table>

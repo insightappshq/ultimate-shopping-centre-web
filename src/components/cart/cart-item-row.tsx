@@ -47,7 +47,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
     <li className={cn("flex gap-3 py-4 sm:gap-4", optimistic.ordered && "opacity-60")}>
       <Link
         href={productHref(item.platform, item.productId)}
-        className="relative size-20 shrink-0 overflow-hidden rounded-xl border bg-white sm:size-24"
+        className="relative size-20 shrink-0 overflow-hidden rounded-md border bg-white sm:size-24"
       >
         <ProductImage src={item.image} alt={item.name} sizes="96px" />
       </Link>
@@ -55,7 +55,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            {item.brand && <p className="text-[0.7rem] font-semibold tracking-wide text-muted-foreground uppercase">{item.brand}</p>}
+            {item.brand && <p className="text-[0.7rem] font-semibold text-muted-foreground">{item.brand}</p>}
             <Link
               href={productHref(item.platform, item.productId)}
               className={cn("line-clamp-2 text-sm font-medium hover:text-primary", optimistic.ordered && "line-through")}
@@ -65,7 +65,7 @@ export function CartItemRow({ item }: { item: CartItem }) {
             {item.packSize && <p className="text-xs text-muted-foreground">{item.packSize}</p>}
           </div>
           <div className="text-right tabular">
-            <p className="font-heading font-bold">{formatPrice(item.price * optimistic.quantity)}</p>
+            <p className="price text-lg">{formatPrice(item.price * optimistic.quantity)}</p>
             {optimistic.quantity > 1 && (
               <p className="text-xs text-muted-foreground">{formatPrice(item.price)} each</p>
             )}

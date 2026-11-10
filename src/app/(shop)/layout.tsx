@@ -19,7 +19,7 @@ export default function ShopLayout({ children }: LayoutProps<"/">) {
         Skip to content
       </a>
       <SiteHeader />
-      <main id="main" className="flex-1">
+      <main id="main" className="min-h-[calc(100dvh-3.5rem)] flex-1">
         {children}
       </main>
       <SiteFooter />

@@ -86,7 +86,7 @@ export function CheckoutAssistant({ items }: { items: CartItem[] }) {
       <DialogContent className="sm:max-w-lg">
         {finished ? (
           <div className="flex flex-col items-center py-4 text-center">
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-success-subtle text-success">
+            <span className="flex size-14 items-center justify-center rounded-lg bg-success-subtle text-success">
               <PartyPopperIcon className="size-7" aria-hidden />
             </span>
             <DialogHeader className="mt-4 items-center">
@@ -110,20 +110,20 @@ export function CheckoutAssistant({ items }: { items: CartItem[] }) {
             </DialogHeader>
             <Progress value={(index / queue.length) * 100} aria-label="Checkout progress" />
 
-            <div className="rounded-2xl border bg-muted/40 p-4">
+            <div className="rounded-lg border bg-muted/40 p-4">
               <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
                 <PlatformLogo platform={current.platform} size="sm" />
                 {meta.name}
               </div>
               <div className="flex gap-3">
-                <div className="relative size-20 shrink-0 overflow-hidden rounded-xl border bg-white">
+                <div className="relative size-20 shrink-0 overflow-hidden rounded-md border bg-white">
                   <ProductImage src={current.image} alt={current.name} sizes="80px" />
                 </div>
                 <div className="min-w-0">
                   <p className="line-clamp-2 font-medium">{current.name}</p>
                   {current.packSize && <p className="text-xs text-muted-foreground">{current.packSize}</p>}
                   <p className="mt-1 text-sm">
-                    <span className="font-heading font-bold tabular">{formatPrice(current.price)}</span>
+                    <span className="price">{formatPrice(current.price)}</span>
                     <span className="text-muted-foreground"> × {current.quantity}</span>
                   </p>
                 </div>

@@ -16,10 +16,9 @@ export function ComparisonPreview({ className }: { className?: string }) {
   const best = ROWS[0];
   return (
     <div className={cn("relative", className)} aria-label="Example of a USC price comparison">
-      <div aria-hidden className="absolute -inset-6 rounded-[2rem] bg-gradient-to-br from-primary/20 via-transparent to-deal/20 blur-2xl" />
-      <div className="relative rounded-3xl border bg-card p-5 shadow-elevated sm:p-6">
+      <div className="relative rounded-lg border bg-card p-5 shadow-elevated sm:p-6">
         <div className="flex items-center justify-between">
-          <span className="rounded-full bg-muted px-2.5 py-1 text-[0.68rem] font-semibold tracking-wide text-muted-foreground uppercase">
+          <span className="text-xs text-muted-foreground">
             Example comparison
           </span>
           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -28,7 +27,7 @@ export function ComparisonPreview({ className }: { className?: string }) {
         </div>
 
         <div className="mt-4 flex items-center gap-3">
-          <span className="flex size-12 items-center justify-center rounded-xl bg-secondary text-primary">
+          <span className="flex size-12 items-center justify-center rounded-md bg-secondary text-primary">
             <MilkIcon className="size-6" strokeWidth={1.75} aria-hidden />
           </span>
           <div>
@@ -44,7 +43,7 @@ export function ComparisonPreview({ className }: { className?: string }) {
               <li
                 key={row.platform}
                 className={cn(
-                  "flex items-center gap-3 rounded-xl border px-3 py-2.5",
+                  "flex items-center gap-3 rounded-md border px-3 py-2.5",
                   isBest ? "border-success/40 bg-success-subtle/70" : "bg-background",
                 )}
               >
@@ -58,7 +57,7 @@ export function ComparisonPreview({ className }: { className?: string }) {
                     <CrownIcon className="size-3" aria-hidden /> Best price
                   </span>
                 )}
-                <span className="font-heading font-bold tabular">{formatPrice(row.price)}</span>
+                <span className="price">{formatPrice(row.price)}</span>
               </li>
             );
           })}

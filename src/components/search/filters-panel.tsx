@@ -43,7 +43,7 @@ export function FiltersPanel({
   return (
     <div className={cn("space-y-1", className)}>
       <div className="flex items-center justify-between pb-2">
-        <h2 className="text-sm font-semibold">Filters</h2>
+        <h2 className="text-base">Filters</h2>
         {activeCount > 0 && (
           <Button variant="link" size="sm" className="h-auto px-0" onClick={reset}>
             Clear all ({activeCount})
@@ -61,7 +61,7 @@ export function FiltersPanel({
       </FilterSection>
 
       <FilterSection title="Availability">
-        <label className="flex cursor-pointer items-center justify-between gap-3 text-sm">
+        <label className="flex cursor-pointer items-center justify-between gap-3">
           In stock only
           <Switch checked={filters.inStock} onCheckedChange={(inStock) => update({ inStock })} />
         </label>
@@ -130,9 +130,9 @@ export function FiltersPanel({
 
 function FilterSection({ title, children, last }: { title: string; children: React.ReactNode; last?: boolean }) {
   return (
-    <fieldset className={cn("space-y-3 py-4", !last && "border-b")}>
+    <fieldset className={cn("space-y-2.5 py-4", !last && "border-b")}>
       <legend className="sr-only">{title}</legend>
-      <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase" aria-hidden>
+      <p className="text-[0.8rem] font-semibold text-foreground" aria-hidden>
         {title}
       </p>
       {children}
@@ -180,7 +180,7 @@ function PlatformFilter({
               disabled={checked && selected.length === 1}
               onCheckedChange={(value) => toggle(platform.id, value === true)}
             />
-            <Label htmlFor={`platform-${platform.id}`} className="flex flex-1 cursor-pointer items-center gap-2 font-normal">
+            <Label htmlFor={`platform-${platform.id}`} className="flex flex-1 cursor-pointer items-center gap-2 text-sm font-normal">
               <PlatformLogo platform={platform.id} size="sm" />
               <span className="flex-1">{platform.name}</span>
             </Label>
@@ -228,9 +228,9 @@ function PriceFilter({
         aria-label="Price range"
       />
       <div className="flex items-center justify-between text-xs font-medium tabular">
-        <span className="rounded-md border px-2 py-1">{formatPrice(value[0])}</span>
+        <span className="rounded-md border bg-card px-2 py-1">{formatPrice(value[0])}</span>
         <span className="text-muted-foreground">to</span>
-        <span className="rounded-md border px-2 py-1">{formatPrice(value[1])}</span>
+        <span className="rounded-md border bg-card px-2 py-1">{formatPrice(value[1])}</span>
       </div>
     </div>
   );
@@ -265,7 +265,7 @@ function BrandFilter({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search brands"
             aria-label="Search brands"
-            className="h-8 w-full rounded-lg border bg-background pr-2 pl-8 text-sm outline-none focus:border-primary"
+            className="h-8 w-full rounded-md border bg-card pr-2 pl-8 text-sm outline-none focus:border-primary"
           />
         </div>
       )}
@@ -277,7 +277,7 @@ function BrandFilter({
               checked={selected.includes(brand.value)}
               onCheckedChange={(v) => toggle(brand.value, v === true)}
             />
-            <Label htmlFor={`brand-${brand.value}`} className="flex-1 cursor-pointer truncate font-normal">
+            <Label htmlFor={`brand-${brand.value}`} className="flex-1 cursor-pointer truncate text-sm font-normal">
               {brand.value}
             </Label>
             <span className="text-xs text-muted-foreground tabular">{brand.count}</span>
@@ -316,8 +316,8 @@ function OptionList<T extends number>({
             aria-checked={active}
             onClick={() => onChange(active ? undefined : option.value)}
             className={cn(
-              "rounded-full border px-3 py-1 text-xs font-medium transition",
-              active ? "border-primary bg-primary text-primary-foreground" : "hover:border-primary/50 hover:bg-accent",
+              "h-7 rounded-md border bg-card px-2.5 text-xs font-medium transition-colors",
+              active ? "border-foreground bg-foreground text-background" : "hover:border-foreground/40",
             )}
           >
             {option.label}

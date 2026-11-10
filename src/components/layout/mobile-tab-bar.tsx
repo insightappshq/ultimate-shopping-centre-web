@@ -22,7 +22,7 @@ export function MobileTabBarView({ cartCount = 0, pathname }: { cartCount?: numb
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card pb-[env(safe-area-inset-bottom)] md:hidden"
     >
       <ul className="grid grid-cols-5">
         {TABS.map(({ href, label, icon: Icon, match }) => {
@@ -33,14 +33,14 @@ export function MobileTabBarView({ cartCount = 0, pathname }: { cartCount?: numb
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex flex-col items-center gap-0.5 py-2 text-[0.68rem] font-medium text-muted-foreground transition",
-                  active && "text-primary",
+                  "relative flex flex-col items-center gap-0.5 pt-2 pb-1.5 text-[0.7rem] font-medium text-muted-foreground transition-colors",
+                  active && "text-foreground before:absolute before:inset-x-5 before:top-0 before:h-0.5 before:rounded-b-sm before:bg-primary",
                 )}
               >
                 <span className="relative">
-                  <Icon className={cn("size-5", active && "stroke-[2.4]")} aria-hidden />
+                  <Icon className={cn("size-5", active && "text-primary")} strokeWidth={active ? 2.25 : 1.75} aria-hidden />
                   {href === "/cart" && cartCount > 0 && (
-                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-deal px-1 text-[0.6rem] font-bold text-deal-foreground">
+                    <span className="absolute -top-1.5 -right-2.5 flex h-4 min-w-4 items-center justify-center rounded-sm bg-primary px-1 text-[0.6rem] font-bold text-primary-foreground">
                       {cartCount > 99 ? "99+" : cartCount}
                     </span>
                   )}

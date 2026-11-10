@@ -6,21 +6,25 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * USC design tokens
+ * USC design system — "the price tag"
  * ------------------------------------------------------------------
- * primary  – "USC Indigo": trustworthy, enterprise, high-contrast CTAs
- * deal     – saffron accent for offers & best-price highlights
- * success  – savings, in-stock, purchased
+ * The price is the hero. Everything around it is quiet: a cool neutral
+ * canvas, white surfaces separated by 1px lines (not shadows), a small
+ * radius scale, and one family (Instrument Sans) in two widths — normal
+ * for reading, semi-condensed + tabular for prices and headings.
+ *
+ * primary  – indigo, reserved for actions and links
+ * success  – real, exact-match savings and in-stock states only
+ * deal     – used sparingly (logo check, a single "lowest price" marker)
  * warning  – low stock, partial results
- * Neutrals carry a faint indigo tint so surfaces feel cohesive.
  */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
+  --font-sans: var(--font-instrument);
+  --font-heading: var(--font-instrument);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-jakarta);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -51,81 +55,86 @@
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
-  --shadow-card: 0 1px 2px oklch(0.25 0.05 270 / 0.04), 0 2px 8px oklch(0.25 0.05 270 / 0.04);
-  --shadow-elevated: 0 4px 12px oklch(0.25 0.05 270 / 0.06), 0 16px 40px oklch(0.25 0.05 270 / 0.08);
+
+  /* Radius scale: controls 6px, panels 8px; nothing larger than 12px. */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 10px;
+  --radius-2xl: 12px;
+  --radius-3xl: 12px;
+  --radius-4xl: 12px;
+
+  /* Lines do the separating; elevation is for floating layers only. */
+  --shadow-card: 0 1px 0 rgb(21 24 38 / 0.03);
+  --shadow-elevated: 0 1px 2px rgb(21 24 38 / 0.06), 0 10px 28px -6px rgb(21 24 38 / 0.14);
 }
 
 :root {
-  --radius: 0.75rem;
-  --background: oklch(0.985 0.004 270);
-  --surface: oklch(0.965 0.008 270);
-  --foreground: oklch(0.2 0.03 270);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.03 270);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.03 270);
-  --primary: oklch(0.47 0.2 268);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.95 0.02 270);
-  --secondary-foreground: oklch(0.32 0.12 268);
-  --muted: oklch(0.96 0.006 270);
-  --muted-foreground: oklch(0.5 0.025 270);
-  --accent: oklch(0.95 0.025 270);
-  --accent-foreground: oklch(0.32 0.12 268);
-  --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.91 0.012 270);
-  --input: oklch(0.89 0.014 270);
-  --ring: oklch(0.47 0.2 268 / 0.5);
-  --deal: oklch(0.74 0.16 62);
-  --deal-foreground: oklch(0.28 0.07 50);
-  --deal-subtle: oklch(0.96 0.045 75);
-  --success: oklch(0.56 0.14 155);
-  --success-foreground: oklch(0.99 0 0);
-  --success-subtle: oklch(0.96 0.04 155);
-  --warning: oklch(0.65 0.15 70);
-  --warning-subtle: oklch(0.97 0.05 85);
-  --chart-1: oklch(0.47 0.2 268);
-  --chart-2: oklch(0.74 0.16 62);
-  --chart-3: oklch(0.56 0.14 155);
-  --chart-4: oklch(0.6 0.15 300);
-  --chart-5: oklch(0.65 0.12 210);
+  --radius: 8px;
+  --background: #f4f5f7;
+  --surface: #eceef2;
+  --foreground: #151826;
+  --card: #ffffff;
+  --card-foreground: #151826;
+  --popover: #ffffff;
+  --popover-foreground: #151826;
+  --primary: #3141d4;
+  --primary-foreground: #ffffff;
+  --secondary: #eef0fb;
+  --secondary-foreground: #26318f;
+  --muted: #f1f2f5;
+  --muted-foreground: #5b6072;
+  --accent: #f1f2f5;
+  --accent-foreground: #151826;
+  --destructive: #c42b2b;
+  --border: #e2e4e9;
+  --input: #d3d6de;
+  --ring: rgb(49 65 212 / 0.45);
+  --deal: #e8962e;
+  --deal-foreground: #3a2300;
+  --deal-subtle: #fdf3e4;
+  --success: #0a7a4a;
+  --success-foreground: #ffffff;
+  --success-subtle: #e6f3ec;
+  --warning: #a65f00;
+  --warning-subtle: #fff4e0;
+  --chart-1: #3141d4;
+  --chart-2: #e8962e;
+  --chart-3: #0a7a4a;
+  --chart-4: #8a4fd1;
+  --chart-5: #2b8fb3;
 }
 
 .dark {
-  --background: oklch(0.17 0.02 270);
-  --surface: oklch(0.2 0.022 270);
-  --foreground: oklch(0.96 0.005 270);
-  --card: oklch(0.21 0.022 270);
-  --card-foreground: oklch(0.96 0.005 270);
-  --popover: oklch(0.22 0.022 270);
-  --popover-foreground: oklch(0.96 0.005 270);
-  --primary: oklch(0.68 0.16 268);
-  --primary-foreground: oklch(0.15 0.03 270);
-  --secondary: oklch(0.27 0.04 270);
-  --secondary-foreground: oklch(0.92 0.03 270);
-  --muted: oklch(0.25 0.02 270);
-  --muted-foreground: oklch(0.7 0.02 270);
-  --accent: oklch(0.28 0.04 270);
-  --accent-foreground: oklch(0.95 0.01 270);
-  --destructive: oklch(0.68 0.19 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 14%);
-  --ring: oklch(0.68 0.16 268 / 0.5);
-  --deal: oklch(0.78 0.15 65);
-  --deal-foreground: oklch(0.22 0.05 50);
-  --deal-subtle: oklch(0.3 0.06 65);
-  --success: oklch(0.7 0.14 155);
-  --success-foreground: oklch(0.16 0.03 155);
-  --success-subtle: oklch(0.28 0.05 155);
-  --warning: oklch(0.78 0.14 75);
-  --warning-subtle: oklch(0.3 0.06 75);
+  --background: #0f1117;
+  --surface: #1c202b;
+  --foreground: #e9ebf1;
+  --card: #161922;
+  --card-foreground: #e9ebf1;
+  --popover: #1a1d27;
+  --popover-foreground: #e9ebf1;
+  --primary: #8591ff;
+  --primary-foreground: #0f1117;
+  --secondary: #20253a;
+  --secondary-foreground: #c9ceff;
+  --muted: #1c202b;
+  --muted-foreground: #9097a8;
+  --accent: #232838;
+  --accent-foreground: #e9ebf1;
+  --destructive: #f06a6a;
+  --border: #262b38;
+  --input: #303647;
+  --ring: rgb(133 145 255 / 0.5);
+  --deal: #f0a94a;
+  --deal-foreground: #2a1a00;
+  --deal-subtle: #2a2114;
+  --success: #3bc58a;
+  --success-foreground: #0f1117;
+  --success-subtle: #12261d;
+  --warning: #e3a13c;
+  --warning-subtle: #2a2111;
 }
 
 @layer base {
@@ -135,26 +144,56 @@
   html {
     @apply font-sans;
     -webkit-tap-highlight-color: transparent;
+    text-rendering: optimizeLegibility;
   }
   body {
     @apply bg-background text-foreground;
-    font-feature-settings: "cv11", "ss01";
+    font-size: 15px;
+    line-height: 1.5;
   }
-  h1, h2, h3, h4 {
-    @apply font-heading tracking-tight;
+  /* Display headings use the semi-condensed cut; small headings stay readable. */
+  h1,
+  h2 {
+    @apply font-heading;
+    font-stretch: 88%;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.12;
+  }
+  h3,
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.005em;
   }
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
   }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 @utility container-page {
-  @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  @apply mx-auto w-full max-w-[1280px] px-4 sm:px-6 lg:px-8;
 }
 
 @utility tabular {
   font-variant-numeric: tabular-nums;
+}
+
+/* Shelf-tag numerals: semi-condensed, heavy, tabular. Used for every price. */
+@utility price {
+  font-family: var(--font-instrument);
+  font-stretch: 82%;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 @utility scrollbar-none {
@@ -170,7 +209,7 @@
   --tw-prose-headings: var(--foreground);
   --tw-prose-links: var(--primary);
   --tw-prose-bold: var(--foreground);
-  --tw-prose-bullets: var(--primary);
+  --tw-prose-bullets: var(--muted-foreground);
   --tw-prose-counters: var(--muted-foreground);
   --tw-prose-hr: var(--border);
   --tw-prose-quotes: var(--foreground);

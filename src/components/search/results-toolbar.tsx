@@ -32,10 +32,10 @@ export function ResultsToolbar({
   const { filters, update } = useSearchState();
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex items-center gap-2">
       <Sheet>
         <SheetTrigger asChild>
-          <Button variant="outline" size="lg" className="lg:hidden">
+          <Button variant="outline" className="lg:hidden">
             <SlidersHorizontalIcon data-icon="inline-start" />
             Filters
           </Button>
@@ -64,19 +64,19 @@ export function ResultsToolbar({
         onValueChange={(view) => view && update({ view: view as "grouped" | "list" })}
         aria-label="Result layout"
       >
-        <ToggleGroupItem value="grouped" aria-label="Compare view" className="h-9 gap-1.5 px-3">
+        <ToggleGroupItem value="grouped" aria-label="Compare view" className="h-9 gap-1.5 px-3 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
           <LayoutGridIcon className="size-4" />
           <span className="hidden sm:inline">Compare</span>
         </ToggleGroupItem>
-        <ToggleGroupItem value="list" aria-label="All listings" className="h-9 gap-1.5 px-3">
+        <ToggleGroupItem value="list" aria-label="All listings" className="h-9 gap-1.5 px-3 data-[state=on]:bg-secondary data-[state=on]:text-secondary-foreground">
           <Rows3Icon className="size-4" />
           <span className="hidden sm:inline">All listings</span>
         </ToggleGroupItem>
       </ToggleGroup>
 
       <Select value={filters.sort} onValueChange={(sort) => update({ sort: sort as SortOption })}>
-        <SelectTrigger className="h-9! min-w-44" aria-label="Sort results">
-          <span className="text-muted-foreground">Sort:</span>
+        <SelectTrigger className="h-9! min-w-0 flex-1 bg-card sm:min-w-44 sm:flex-none" aria-label="Sort results">
+          <span className="hidden text-muted-foreground sm:inline">Sort:</span>
           <SelectValue />
         </SelectTrigger>
         <SelectContent align="end">
@@ -137,7 +137,7 @@ export function ActiveFilters() {
           key={chip.key}
           type="button"
           onClick={chip.clear}
-          className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-secondary px-2.5 py-1 text-xs font-medium text-secondary-foreground transition hover:border-primary"
+          className="inline-flex h-7 items-center gap-1 rounded-md bg-secondary px-2.5 text-xs font-medium text-secondary-foreground transition-colors hover:bg-secondary/70"
           aria-label={`Remove filter ${chip.label}`}
         >
           {chip.label}

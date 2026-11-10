@@ -18,7 +18,6 @@ import {
   TimerIcon,
   UsersIcon,
   WalletIcon,
-  ZapIcon,
   type LucideIcon,
 } from "lucide-react";
 import type { Metadata } from "next";
@@ -57,19 +56,10 @@ export default function LandingPage() {
 function Hero() {
   return (
     <section className="relative overflow-hidden">
-      <div aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-b from-secondary/70 via-background to-background" />
-      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[30rem] w-[60rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
       <div className="container-page relative grid items-center gap-12 py-14 sm:py-20 lg:grid-cols-[1.1fr_1fr] lg:py-24">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border bg-card px-3 py-1 text-xs font-semibold text-muted-foreground shadow-card">
-            <ZapIcon className="size-3.5 text-deal" aria-hidden />
-            Live price comparison, built for India
-          </span>
-          <h1 className="mt-6 text-4xl leading-[1.05] font-extrabold text-balance sm:text-5xl lg:text-6xl">
-            Every app. One search.{" "}
-            <span className="bg-gradient-to-r from-primary to-[oklch(0.55_0.2_290)] bg-clip-text text-transparent">
-              The best price, every time.
-            </span>
+          <h1 className="text-[2.6rem] leading-[1.02] text-balance sm:text-[3.4rem] lg:text-[4rem]">
+            Every app, one search. Pay the lowest price.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-muted-foreground">
             USC compares live prices, stock and delivery times across Blinkit, Zepto, Swiggy Instamart, BigBasket,
@@ -105,7 +95,7 @@ function PlatformStrip() {
   return (
     <section id="platforms" className="scroll-mt-20 border-y bg-card">
       <div className="container-page py-10">
-        <p className="text-center text-xs font-semibold tracking-[0.18em] text-muted-foreground uppercase">
+        <p className="text-center text-xs font-semibold text-muted-foreground">
           Compare prices across the apps you already use
         </p>
         <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-4">
@@ -123,12 +113,11 @@ function PlatformStrip() {
 
 /* ------------------------------- Sections -------------------------------- */
 
-function SectionIntro({ eyebrow, title, body }: { eyebrow: string; title: string; body?: string }) {
+function SectionIntro({ title, body }: { eyebrow?: string; title: string; body?: string }) {
   return (
-    <div className="mx-auto max-w-2xl text-center">
-      <p className="text-sm font-semibold tracking-wide text-primary uppercase">{eyebrow}</p>
-      <h2 className="mt-3 text-3xl font-bold text-balance sm:text-4xl">{title}</h2>
-      {body && <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{body}</p>}
+    <div className="max-w-2xl">
+      <h2 className="text-[2rem] text-balance sm:text-[2.5rem]">{title}</h2>
+      {body && <p className="mt-3 text-base leading-relaxed text-muted-foreground sm:text-lg">{body}</p>}
     </div>
   );
 }
@@ -153,19 +142,17 @@ const PROBLEMS: { icon: LucideIcon; title: string; body: string }[] = [
 
 function Problem() {
   return (
-    <section className="container-page py-20 sm:py-24">
+    <section className="container-page py-16 sm:py-20">
       <SectionIntro
         eyebrow="Why USC"
         title="The same basket rarely costs the same twice"
         body="Quick-commerce and grocery platforms set their prices store by store and change them through the day. Finding the best deal means searching five apps and comparing in your head. USC does that work for you in seconds."
       />
-      <div className="mt-14 grid gap-5 md:grid-cols-3">
+      <div className="mt-10 grid gap-5 md:grid-cols-3">
         {PROBLEMS.map((item) => (
-          <div key={item.title} className="rounded-2xl border bg-card p-6 shadow-card">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-deal-subtle text-deal-foreground">
-              <item.icon className="size-5" aria-hidden />
-            </span>
-            <h3 className="mt-5 font-semibold">{item.title}</h3>
+          <div key={item.title} className="rounded-lg border bg-card p-6">
+            <item.icon className="size-5 text-deal" aria-hidden />
+            <h3 className="mt-4 font-semibold">{item.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
           </div>
         ))}
@@ -199,17 +186,15 @@ const STEPS: { icon: LucideIcon; title: string; body: string }[] = [
 
 function HowItWorks() {
   return (
-    <section id="how-it-works" className="scroll-mt-20 bg-card py-20 sm:py-24">
+    <section id="how-it-works" className="scroll-mt-20 bg-card py-16 sm:py-20">
       <div className="container-page">
         <SectionIntro eyebrow="How it works" title="From search to savings in four steps" />
-        <ol className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <ol className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((step, index) => (
-            <li key={step.title} className="relative rounded-2xl border bg-background p-6">
+            <li key={step.title} className="relative rounded-lg border bg-background p-6">
               <span className="font-heading text-sm font-bold text-primary tabular">0{index + 1}</span>
-              <span className="mt-4 flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <step.icon className="size-5" aria-hidden />
-              </span>
-              <h3 className="mt-5 font-semibold">{step.title}</h3>
+              <step.icon className="mt-4 size-5 text-primary" aria-hidden />
+              <h3 className="mt-4 font-semibold">{step.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
             </li>
           ))}
@@ -254,19 +239,17 @@ const FEATURES: { icon: LucideIcon; title: string; body: string }[] = [
 
 function Features() {
   return (
-    <section id="features" className="container-page scroll-mt-20 py-20 sm:py-24">
+    <section id="features" className="container-page scroll-mt-20 py-16 sm:py-20">
       <SectionIntro
         eyebrow="Features"
         title="Everything you need to shop smarter"
         body="Designed for the way India buys groceries and essentials today — across many apps, in minutes, on a budget."
       />
-      <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-10 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-3">
         {FEATURES.map((feature) => (
-          <div key={feature.title} className="group rounded-2xl border bg-card p-6 shadow-card transition hover:border-primary/40 hover:shadow-elevated">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-secondary text-primary transition group-hover:bg-primary group-hover:text-primary-foreground">
-              <feature.icon className="size-5" aria-hidden />
-            </span>
-            <h3 className="mt-5 font-semibold">{feature.title}</h3>
+          <div key={feature.title} className="bg-card p-6">
+            <feature.icon className="size-5 text-primary" aria-hidden />
+            <h3 className="mt-4 font-semibold">{feature.title}</h3>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.body}</p>
           </div>
         ))}
@@ -295,12 +278,12 @@ const AUDIENCES: { icon: LucideIcon; title: string; body: string }[] = [
 
 function Audiences() {
   return (
-    <section className="bg-card py-20 sm:py-24">
+    <section className="bg-card py-16 sm:py-20">
       <div className="container-page">
         <SectionIntro eyebrow="Made for" title="However you shop, USC fits in" />
-        <div className="mt-14 grid gap-5 md:grid-cols-3">
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
           {AUDIENCES.map((item) => (
-            <div key={item.title} className="rounded-2xl border bg-background p-6">
+            <div key={item.title} className="rounded-lg border bg-background p-6">
               <item.icon className="size-6 text-primary" aria-hidden />
               <h3 className="mt-4 font-semibold">{item.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
@@ -332,11 +315,10 @@ const TRUST: { icon: LucideIcon; title: string; body: string }[] = [
 
 function Trust() {
   return (
-    <section className="container-page py-20 sm:py-24">
+    <section className="container-page py-16 sm:py-20">
       <div className="grid items-center gap-12 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <p className="text-sm font-semibold tracking-wide text-primary uppercase">Trust & privacy</p>
-          <h2 className="mt-3 text-3xl font-bold text-balance sm:text-4xl">Independent, transparent, on your side</h2>
+          <h2 className="text-[2rem] text-balance sm:text-[2.5rem]">Independent, transparent, on your side</h2>
           <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
             USC isn&apos;t owned by any of the platforms it compares, and rankings are never paid for. The cheapest
             listing is shown as the cheapest — whoever sells it.
@@ -355,10 +337,8 @@ function Trust() {
         </div>
         <div className="grid gap-4">
           {TRUST.map((item) => (
-            <div key={item.title} className="flex gap-4 rounded-2xl border bg-card p-5 shadow-card">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-success-subtle text-success">
-                <item.icon className="size-5" aria-hidden />
-              </span>
+            <div key={item.title} className="flex gap-4 rounded-lg border bg-card p-5">
+              <item.icon className="mt-0.5 size-5 shrink-0 text-success" aria-hidden />
               <div>
                 <h3 className="font-semibold">{item.title}</h3>
                 <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{item.body}</p>
@@ -404,10 +384,10 @@ const FAQS: { q: string; a: string }[] = [
 
 function Faq() {
   return (
-    <section id="faq" className="scroll-mt-20 bg-card py-20 sm:py-24">
-      <div className="container-page max-w-3xl">
-        <SectionIntro eyebrow="FAQ" title="Questions, answered" />
-        <Accordion type="single" collapsible className="mt-12 rounded-2xl border bg-background px-5">
+    <section id="faq" className="scroll-mt-20 bg-card py-16 sm:py-20">
+      <div className="container-page grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:gap-16">
+        <SectionIntro title="Questions, answered" body="Everything you need to know before your first comparison." />
+        <Accordion type="single" collapsible className="rounded-lg border bg-card px-5">
           {FAQS.map((item, index) => (
             <AccordionItem key={item.q} value={`faq-${index}`}>
               <AccordionTrigger className="py-5 text-base font-semibold">{item.q}</AccordionTrigger>
@@ -422,19 +402,17 @@ function Faq() {
 
 function FinalCta() {
   return (
-    <section className="container-page py-20 sm:py-24">
-      <div className="relative overflow-hidden rounded-3xl bg-primary px-6 py-12 text-primary-foreground sm:px-12 sm:py-16">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -bottom-24 size-96 rounded-full bg-deal/30 blur-3xl" />
-        <div aria-hidden className="pointer-events-none absolute -top-24 -left-24 size-80 rounded-full bg-white/10 blur-3xl" />
+    <section className="container-page py-16 sm:py-20">
+      <div className="relative overflow-hidden rounded-lg bg-primary px-6 py-12 text-primary-foreground sm:px-12 sm:py-16">
         <div className="relative flex flex-col items-start gap-8 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-bold text-balance sm:text-4xl">Your next order could cost less. Find out in seconds.</h2>
+            <h2 className="text-[2rem] text-balance sm:text-[2.5rem]">Your next order could cost less. Find out in seconds.</h2>
             <p className="mt-3 text-lg text-primary-foreground/80">
               Create a free account, confirm your pincode, and run your first comparison in under a minute.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">
-            <Button asChild size="xl" variant="deal">
+            <Button asChild size="xl" className="bg-white text-primary hover:bg-white/90">
               <Link href="/signup">
                 Get started free <ArrowRightIcon data-icon="inline-end" />
               </Link>

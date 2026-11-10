@@ -1,14 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
+import { Geist_Mono, Instrument_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { siteConfig } from "@/config/site";
 import "./globals.css";
 
-const inter = Inter({ variable: "--font-inter", subsets: ["latin"], display: "swap" });
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
+// One family, two widths: normal for reading, semi-condensed for prices and headings.
+const instrument = Instrument_Sans({
+  variable: "--font-instrument",
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  axes: ["wdth"],
   display: "swap",
 });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
@@ -32,8 +32,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfbfe" },
-    { media: "(prefers-color-scheme: dark)", color: "#16182a" },
+    { media: "(prefers-color-scheme: light)", color: "#f4f5f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f1117" },
   ],
 };
 
@@ -42,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en-IN"
       suppressHydrationWarning
-      className={`${inter.variable} ${jakarta.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${instrument.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <Providers>{children}</Providers>

@@ -62,7 +62,7 @@ export function WishlistButton({
       aria-pressed={optimisticSaved}
       aria-label={label}
       title={label}
-      className={cn("rounded-full bg-card/90 backdrop-blur", className)}
+      className={cn("border-border/80 bg-card/95 shadow-card", className)}
     >
       <HeartIcon className={cn("size-4", optimisticSaved && "fill-destructive text-destructive")} />
     </Button>

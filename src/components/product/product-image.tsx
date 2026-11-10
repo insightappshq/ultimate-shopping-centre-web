@@ -29,13 +29,13 @@ export function ProductImage({
     return (
       <div
         className={cn(
-          "flex size-full items-center justify-center bg-gradient-to-br from-muted to-surface text-muted-foreground/60",
+          "flex size-full items-center justify-center bg-muted/40 text-muted-foreground/40",
           className,
         )}
         role="img"
         aria-label={alt}
       >
-        <PackageIcon className="size-1/3 max-h-12 max-w-12" strokeWidth={1.25} aria-hidden />
+        <PackageIcon className="size-8" strokeWidth={1.25} aria-hidden />
       </div>
     );
   }

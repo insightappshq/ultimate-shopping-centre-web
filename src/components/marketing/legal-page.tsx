@@ -18,10 +18,10 @@ export async function LegalPage({
   const toc = headingsOf(source);
 
   return (
-    <div className="bg-gradient-to-b from-secondary/50 via-background to-background">
+    <div className="bg-background">
       <div className="container-page py-12 sm:py-16">
         <header className="max-w-3xl">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+          <span className="flex size-12 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <Icon className="size-6" aria-hidden />
           </span>
           <h1 className="mt-6 text-4xl font-extrabold sm:text-5xl">{title}</h1>
@@ -34,7 +34,7 @@ export async function LegalPage({
         <div className="mt-12 grid gap-10 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-14">
           <nav aria-label="On this page" className="hidden lg:block">
             <div className="sticky top-24">
-              <p className="mb-3 text-xs font-semibold tracking-wide text-muted-foreground uppercase">On this page</p>
+              <p className="mb-3 text-xs font-semibold text-muted-foreground">On this page</p>
               <ol className="space-y-1.5 border-l text-sm">
                 {toc.map((item) => (
                   <li key={item.id}>
@@ -49,7 +49,7 @@ export async function LegalPage({
               </ol>
             </div>
           </nav>
-          <article className="min-w-0 rounded-3xl border bg-card p-6 shadow-card sm:p-10">
+          <article className="min-w-0 rounded-lg border bg-card p-6 shadow-card sm:p-10">
             <Markdown source={source} />
           </article>
         </div>

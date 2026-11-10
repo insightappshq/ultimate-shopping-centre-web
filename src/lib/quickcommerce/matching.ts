@@ -12,7 +12,8 @@ import { quantityKey } from "./units";
 const STOP_WORDS = new Set([
   "a", "an", "and", "the", "of", "with", "for", "in", "on", "by", "to", "from",
   "pack", "packet", "pouch", "bottle", "jar", "box", "combo", "new", "fresh",
-  "pc", "pcs", "piece", "pieces", "unit", "units", "x",
+  "pc", "pcs", "piece", "pieces", "unit", "units", "x", "container", "tub", "carton",
+  "tin", "refill", "can", "bag", "value", "pack", "offer",
 ]);
 
 const UNIT_TOKEN = /^\d+(\.\d+)?(g|gm|gms|kg|kgs|ml|l|ltr|litre|liter|pc|pcs|n)?$/;
@@ -44,6 +45,19 @@ function coverage(reference: Set<string>, candidate: Set<string>): number {
   return hits / reference.size;
 }
 
+/**
+ * True when each name has a word the other lacks — "Plain" vs "Pepper",
+ * "Salted" vs "Unsalted". That signals a different variant, not a renamed
+ * listing, so the two must not be treated as the same product.
+ */
+function differentVariants(a: Set<string>, b: Set<string>): boolean {
+  let aOnly = false;
+  let bOnly = false;
+  for (const token of a) if (!b.has(token)) aOnly = true;
+  for (const token of b) if (!a.has(token)) bOnly = true;
+  return aOnly && bOnly;
+}
+
 export function similarity(reference: Offer, candidate: Offer): number {
   const a = tokenSet(reference);
   const b = tokenSet(candidate);
@@ -57,6 +71,9 @@ export function similarity(reference: Offer, candidate: Offer): number {
   const qa = quantityKey(reference.quantity);
   const qb = quantityKey(candidate.quantity);
   if (qa && qb) score = qa === qb ? score + 0.1 : Math.min(score, 0.55) - 0.1;
+
+  // A different variant can still be shown as "similar", never as the same product.
+  if (differentVariants(a, b)) score = Math.min(score, EXACT_THRESHOLD - 0.01);
 
   return Math.max(0, Math.min(1, score));
 }
@@ -132,6 +149,7 @@ export function groupOffers(offers: Offer[]): ProductGroup[] {
     for (const group of groups) {
       if (group.offers.some((o) => o.platform === offer.platform)) continue;
       if (qty && group.qty && qty !== group.qty) continue;
+      if (differentVariants(group.tokens, tokens)) continue;
       const score = 0.6 * dice(group.tokens, tokens) + 0.4 * coverage(group.tokens, tokens);
       if (score >= GROUP_THRESHOLD && score > bestScore) {
         bestScore = score;
@@ -148,6 +166,22 @@ export function groupOffers(offers: Offer[]): ProductGroup[] {
   }
 
   return groups.map(({ seed, offers: groupOffers }) => toProductGroup(seed, groupOffers));
+}
+
+/**
+ * Highest price among listings that are verifiably the same pack as `best`.
+ * Savings are only claimed against like-for-like packs; unknown sizes don't count.
+ */
+function comparableHighest(best: Offer, available: Offer[]): number {
+  const key = quantityKey(best.quantity);
+  if (!key) return best.price;
+  const same = available.filter((o) => quantityKey(o.quantity) === key);
+  return same.length ? Math.max(best.price, ...same.map((o) => o.price)) : best.price;
+}
+
+/** Listings in a comparison that are the same product and pack — the only fair basis for "save ₹X". */
+export function exactRows<T extends { match: "exact" | "similar"; offer: Offer }>(rows: T[]): T[] {
+  return rows.filter((row) => row.match === "exact" && row.offer.available);
 }
 
 function toProductGroup(seed: Offer, offers: Offer[]): ProductGroup {
@@ -169,7 +203,7 @@ function toProductGroup(seed: Offer, offers: Offer[]): ProductGroup {
     image: seed.image ?? sorted.find((o) => o.image)?.image ?? null,
     offers: sorted,
     best,
-    highestPrice: Math.max(...(available.length ? available : sorted).map((o) => o.price)),
+    highestPrice: comparableHighest(best, available),
     maxDiscount: Math.max(...sorted.map((o) => o.discountPercent)),
     rating: ratings.length ? Math.max(...ratings) : null,
     fastestEtaMinutes: etas.length ? Math.min(...etas) : null,

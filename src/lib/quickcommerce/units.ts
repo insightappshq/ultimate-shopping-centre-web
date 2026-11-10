@@ -36,10 +36,18 @@ export function parseQuantity(raw: string | null | undefined): ParsedQuantity | 
   if (!raw) return null;
   const text = raw.toLowerCase().replace(/,/g, "").trim();
 
+  // "2 x 500 ml"
   const multi = text.match(/(\d+)\s*[x×*]\s*(\d+(?:\.\d+)?)\s*([a-z]+)/);
   if (multi) {
     const spec = UNIT_FACTORS[multi[3]];
     if (spec) return { amount: Number(multi[1]) * Number(multi[2]) * spec.factor, unit: spec.unit };
+  }
+
+  // "200 g x 2", "200g X 2"
+  const trailing = text.match(/(\d+(?:\.\d+)?)\s*([a-z]+)\s*[x×*]\s*(\d+)\b/);
+  if (trailing) {
+    const spec = UNIT_FACTORS[trailing[2]];
+    if (spec) return { amount: Number(trailing[1]) * Number(trailing[3]) * spec.factor, unit: spec.unit };
   }
 
   const single = text.match(/(\d+(?:\.\d+)?)\s*([a-z]+)/);

@@ -14,11 +14,14 @@ export function AddToCartButton({
   product,
   inCart = false,
   label = "Add to cart",
+  compact = false,
   ...buttonProps
 }: {
   product: ProductSnapshot;
   inCart?: boolean;
   label?: string;
+  /** Icon-only, for dense tiles. The accessible name still says what it does. */
+  compact?: boolean;
 } & Omit<React.ComponentProps<typeof Button>, "onClick" | "children">) {
   const router = useRouter();
   const redirectToLogin = useAuthRedirect();
@@ -45,6 +48,29 @@ export function AddToCartButton({
   };
 
   const showAdded = added || (inCart && !pending);
+
+  if (compact) {
+    const name = added ? "Added to cart" : inCart ? "In cart — add another" : label;
+    return (
+      <Button
+        variant={showAdded ? "secondary" : "outline"}
+        size="icon-sm"
+        {...buttonProps}
+        onClick={handleClick}
+        disabled={pending || buttonProps.disabled}
+        aria-label={name}
+        title={name}
+      >
+        {pending ? (
+          <Loader2Icon className="animate-spin" />
+        ) : showAdded ? (
+          <CheckIcon className="text-success" />
+        ) : (
+          <ShoppingCartIcon />
+        )}
+      </Button>
+    );
+  }
 
   return (
     <Button

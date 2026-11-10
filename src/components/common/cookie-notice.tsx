@@ -44,7 +44,7 @@ export function CookieNotice() {
     <div
       role="region"
       aria-label="Cookie notice"
-      className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-xl rounded-2xl border bg-popover p-4 shadow-elevated md:bottom-4"
+      className="fixed inset-x-3 bottom-20 z-50 mx-auto max-w-xl rounded-lg border bg-popover p-4 shadow-elevated md:bottom-4"
     >
       <div className="flex items-start gap-3">
         <CookieIcon className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden />

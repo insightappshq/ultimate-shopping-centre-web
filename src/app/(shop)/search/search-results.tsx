@@ -55,24 +55,24 @@ export async function SearchResults({ searchParams }: { searchParams: PageProps<
 
   return (
     <SearchStateProvider filters={filters}>
-      <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
-        <aside className="hidden w-64 shrink-0 lg:block">
-          <div className="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl border bg-card p-4 shadow-card">
+      <div className="flex flex-col gap-5 lg:flex-row lg:gap-8">
+        <aside className="hidden w-60 shrink-0 lg:block" aria-label="Filters">
+          <div className="sticky top-20 max-h-[calc(100vh-6rem)] overflow-x-hidden overflow-y-auto pr-2 text-sm">
             <FiltersPanel facets={facets} statuses={result.statuses} />
           </div>
         </aside>
 
-        <section className="min-w-0 flex-1 space-y-4" aria-labelledby="results-heading">
+        <section className="min-w-0 flex-1 space-y-3" aria-labelledby="results-heading">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div>
-              <h1 id="results-heading" className="text-xl font-bold sm:text-2xl">
-                Results for “<span className="text-primary">{filters.q}</span>”
+            <div className="min-w-0">
+              <h1 id="results-heading" className="truncate text-2xl">
+                {filters.q}
               </h1>
-              <p className="mt-0.5 text-sm text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {filters.view === "grouped"
-                  ? `${pluralize(shaped.total, "product")} compared from ${pluralize(result.offers.length, "listing")}`
+                  ? `${pluralize(shaped.total, "product")} from ${pluralize(result.offers.length, "listing")}`
                   : pluralize(shaped.total, "listing")}{" "}
-                · near {location.label} {location.pincode}
+                for {location.pincode}
               </p>
             </div>
             <ResultsToolbar facets={facets} statuses={result.statuses} total={shaped.total} />
@@ -108,7 +108,7 @@ export async function SearchResults({ searchParams }: { searchParams: PageProps<
               />
             ) : (
               <>
-                <ul className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+                <ul className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-4">
                   {filters.view === "grouped"
                     ? shaped.groups.map((group) => (
                         <li key={group.id} className="flex">
@@ -138,7 +138,7 @@ export async function SearchResults({ searchParams }: { searchParams: PageProps<
 export function SearchResultsSkeleton() {
   return (
     <div className="flex gap-8" aria-busy aria-label="Loading results">
-      <div className="hidden w-64 shrink-0 space-y-3 rounded-2xl border bg-card p-4 lg:block">
+      <div className="hidden w-60 shrink-0 space-y-3 lg:block">
         {Array.from({ length: 8 }, (_, i) => (
           <div key={i} className="h-4 animate-pulse rounded bg-muted" style={{ width: `${60 + ((i * 13) % 35)}%` }} />
         ))}
@@ -150,11 +150,11 @@ export function SearchResultsSkeleton() {
         </div>
         <div className="flex gap-2">
           {Array.from({ length: 5 }, (_, i) => (
-            <div key={i} className="h-7 w-24 animate-pulse rounded-full bg-muted" />
+            <div key={i} className="h-7 w-24 animate-pulse rounded-md bg-muted" />
           ))}
         </div>
         <p className="text-sm text-muted-foreground">Fetching live prices from every platform…</p>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }, (_, i) => (
             <ProductCardSkeleton key={i} />
           ))}

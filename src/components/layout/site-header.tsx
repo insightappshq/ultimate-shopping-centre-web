@@ -10,40 +10,36 @@ async function CurrentLocation({ className }: { className?: string }) {
   return <LocationPicker location={location} className={className} />;
 }
 
+/**
+ * Desktop: one 56px row — logo, delivery location, search, account.
+ * Mobile: logo + location + account on the first row, search on the second,
+ * so results start as high on the screen as possible.
+ */
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/75">
-      <div className="container-page flex h-16 items-center gap-3 md:gap-6">
-        <Logo href="/home" />
-        <div className="hidden max-w-[17rem] min-w-0 lg:block">
+    <header className="sticky top-0 z-40 border-b bg-card">
+      <div className="container-page flex h-14 items-center gap-2 md:gap-5">
+        <Logo href="/home" compact className="md:hidden" />
+        <Logo href="/home" className="hidden md:flex" />
+        <div className="min-w-0 flex-1 md:max-w-[15rem] md:flex-none">
           <Suspense fallback={<LocationPickerFallback />}>
-            <CurrentLocation />
+            <CurrentLocation className="max-w-full" />
           </Suspense>
         </div>
-        <div className="hidden flex-1 md:block">
+        <div className="hidden min-w-0 flex-1 md:block">
           <Suspense fallback={<SearchBarFallback />}>
             <SearchBar />
           </Suspense>
         </div>
-        <div className="ml-auto md:ml-0">
+        <div className="shrink-0">
           <Suspense fallback={<HeaderActionsFallback />}>
             <HeaderActions />
           </Suspense>
         </div>
       </div>
-
-      {/* Mobile: location and search get their own row for thumb reach. */}
-      <div className="container-page space-y-1 pb-3 md:hidden">
-        <Suspense fallback={<LocationPickerFallback />}>
-          <CurrentLocation className="-ml-2 max-w-full" />
-        </Suspense>
+      <div className="container-page pb-2.5 md:hidden">
         <Suspense fallback={<SearchBarFallback />}>
           <SearchBar />
-        </Suspense>
-      </div>
-      <div className="container-page hidden pb-2 md:block lg:hidden">
-        <Suspense fallback={<LocationPickerFallback />}>
-          <CurrentLocation className="-ml-2" />
         </Suspense>
       </div>
     </header>

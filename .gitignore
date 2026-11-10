@@ -161,3 +161,6 @@ next-env.d.ts
 
 # Prisma generated client
 /src/generated/
+
+# Playwright MCP output
+/.playwright-mcp/

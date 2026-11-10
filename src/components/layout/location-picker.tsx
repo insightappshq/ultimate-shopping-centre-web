@@ -140,7 +140,7 @@ export function LocationPicker({ location, className }: { location: GeoLocation;
         </form>
 
         <div>
-          <p className="mb-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">Popular cities</p>
+          <p className="mb-2 text-xs font-semibold text-muted-foreground">Popular cities</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
             {CITY_PRESETS.map((city) => (
               <button

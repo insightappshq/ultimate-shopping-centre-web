@@ -14,10 +14,8 @@ export function Rating({
   if (!rating) return null;
   return (
     <span className={cn("inline-flex items-center gap-1 text-xs text-muted-foreground tabular", className)}>
-      <span className="inline-flex items-center gap-0.5 rounded bg-success px-1 py-px text-[0.68rem] font-semibold text-success-foreground">
-        {rating.toFixed(1)}
-        <StarIcon className="size-2.5 fill-current" aria-hidden />
-      </span>
+      <StarIcon className="size-3 fill-deal text-deal" aria-hidden />
+      <span className="font-medium text-foreground">{rating.toFixed(1)}</span>
       {count ? <span>({formatCount(count)})</span> : null}
       <span className="sr-only">out of 5 stars</span>
     </span>
@@ -49,5 +47,5 @@ export function StockStatus({
   if (inventory !== null && inventory !== undefined && inventory > 0 && inventory <= 5) {
     return <span className={cn("text-xs font-medium text-warning", className)}>Only {inventory} left</span>;
   }
-  return <span className={cn("text-xs font-medium text-success", className)}>In stock</span>;
+  return <span className={cn("text-xs text-muted-foreground", className)}>In stock</span>;
 }

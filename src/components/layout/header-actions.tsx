@@ -10,7 +10,7 @@ import { UserMenu } from "./user-menu";
 function CountBadge({ count }: { count: number }) {
   if (!count) return null;
   return (
-    <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-deal px-1 text-[0.65rem] font-bold text-deal-foreground ring-2 ring-background tabular">
+    <span className="absolute top-0.5 right-0.5 flex h-4 min-w-4 items-center justify-center rounded-sm bg-primary px-1 text-[0.65rem] font-bold text-primary-foreground ring-2 ring-card tabular">
       {count > 99 ? "99+" : count}
     </span>
   );
@@ -44,13 +44,13 @@ export async function HeaderActions() {
 
   return (
     <div className="flex items-center gap-1 sm:gap-1.5">
-      <Button variant="ghost" size="icon-lg" asChild className="relative hidden md:inline-flex">
+      <Button variant="ghost" size="icon" asChild className="relative hidden md:inline-flex">
         <Link href="/wishlist" aria-label={`Wishlist, ${wishlistCount} items`}>
           <HeartIcon className="size-5" />
           <CountBadge count={wishlistCount} />
         </Link>
       </Button>
-      <Button variant="ghost" size="icon-lg" asChild className="relative hidden md:inline-flex">
+      <Button variant="ghost" size="icon" asChild className="relative hidden md:inline-flex">
         <Link href="/cart" aria-label={`Cart, ${cartCount} items`}>
           <ShoppingCartIcon className="size-5" />
           <CountBadge count={cartCount} />

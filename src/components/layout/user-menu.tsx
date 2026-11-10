@@ -43,11 +43,11 @@ export function UserMenu({ user }: { user: MenuUser }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring"
+        className="ml-1 rounded-md outline-none focus-visible:ring-3 focus-visible:ring-ring"
         aria-label="Account menu"
       >
-        <Avatar className="size-9 border-2 border-primary/15">
-          <AvatarFallback className="bg-secondary text-xs font-semibold text-secondary-foreground">
+        <Avatar className="size-8 rounded-md after:rounded-md">
+          <AvatarFallback className="rounded-md bg-secondary text-xs font-semibold text-secondary-foreground">
             {initials(user)}
           </AvatarFallback>
         </Avatar>

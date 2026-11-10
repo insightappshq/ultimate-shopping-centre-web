@@ -20,7 +20,7 @@ export const metadata: Metadata = { title: "Account", robots: { index: false } }
 export default function AccountPage() {
   return (
     <div className="container-page py-6 sm:py-8">
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl bg-muted" />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-lg bg-muted" />}>
         <AccountContent />
       </Suspense>
     </div>
@@ -58,17 +58,17 @@ async function AccountContent() {
       />
 
       <div className="grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <section className="space-y-5 rounded-2xl border bg-card p-5 shadow-card sm:p-6">
+        <section className="space-y-5 rounded-lg border bg-card p-5 sm:p-6">
           <div className="flex items-center gap-4">
-            <Avatar className="size-14">
-              <AvatarFallback className="bg-primary text-lg font-bold text-primary-foreground">
+            <Avatar className="size-12 rounded-md after:rounded-md">
+              <AvatarFallback className="rounded-md bg-secondary text-base font-semibold text-secondary-foreground">
                 {initials({ name, email: user.email, phone: user.phone })}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-lg font-semibold">
                 {name || "Shopper"}
-                {profile?.isDemo && <Badge variant="deal">Demo</Badge>}
+                {profile?.isDemo && <Badge variant="secondary">Demo</Badge>}
               </p>
               <div className="space-y-0.5 text-sm text-muted-foreground">
                 {user.email && (
@@ -87,28 +87,28 @@ async function AccountContent() {
           <NameForm initialName={name} />
           <div className="space-y-2">
             <p className="text-sm font-medium">Delivery location</p>
-            <div className="rounded-xl border p-1">
+            <div className="rounded-md border p-1">
               <LocationPicker location={location} className="w-full" />
             </div>
           </div>
         </section>
 
         <section className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border bg-border">
             {tiles.map((tile) => (
               <Link
                 key={tile.label}
                 href={tile.href}
-                className="rounded-2xl border bg-card p-4 shadow-card transition hover:border-primary/40"
+                className="bg-card p-4 transition-colors hover:bg-muted/50"
               >
-                <tile.icon className="size-4.5 text-primary" aria-hidden />
-                <p className="mt-2 font-heading text-2xl font-bold tabular">{tile.value}</p>
+                <tile.icon className="size-4 text-muted-foreground" aria-hidden />
+                <p className="price mt-2 text-2xl">{tile.value}</p>
                 <p className="text-xs text-muted-foreground">{tile.label}</p>
               </Link>
             ))}
           </div>
 
-          <div className="rounded-2xl border bg-card p-5 shadow-card">
+          <div className="rounded-lg border bg-card p-5">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="font-semibold">Recent searches</h2>
               {searches.length > 0 && <ClearHistoryButton />}
@@ -119,7 +119,7 @@ async function AccountContent() {
                   <Link
                     key={query}
                     href={searchHref(query)}
-                    className="rounded-full border px-3 py-1 text-sm capitalize transition hover:border-primary hover:text-primary"
+                    className="inline-flex h-8 items-center rounded-md border bg-card px-3 text-sm capitalize transition-colors hover:border-foreground/30"
                   >
                     {query}
                   </Link>

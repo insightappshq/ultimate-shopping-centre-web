@@ -24,7 +24,20 @@ function saveRecent(query: string) {
   localStorage.setItem(RECENT_KEY, JSON.stringify(next.slice(0, MAX_RECENT)));
 }
 
-export function SearchBar({ className, autoFocus = false }: { className?: string; autoFocus?: boolean }) {
+/**
+ * `compact` (header): a quiet filled field, submitted with Enter.
+ * `prominent` (home): a larger field with an explicit Search button.
+ */
+export function SearchBar({
+  className,
+  autoFocus = false,
+  variant = "compact",
+}: {
+  className?: string;
+  autoFocus?: boolean;
+  variant?: "compact" | "prominent";
+}) {
+  const prominent = variant === "prominent";
   const router = useRouter();
   const params = useSearchParams();
   const listId = useId();
@@ -85,7 +98,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
         submit(query);
       }}
     >
-      <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-4.5 -translate-y-1/2 text-muted-foreground" aria-hidden />
+      <SearchIcon className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
       <input
         ref={inputRef}
         type="search"
@@ -94,7 +107,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
         autoFocus={autoFocus}
         autoComplete="off"
         enterKeyHint="search"
-        placeholder="Search for atta, milk, butter, detergent…"
+        placeholder="Search groceries and essentials"
         aria-label="Search products across platforms"
         role="combobox"
         aria-expanded={open}
@@ -111,7 +124,12 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
         }}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         onKeyDown={onKeyDown}
-        className="h-11 w-full rounded-xl border border-input bg-card pr-28 pl-10 text-sm shadow-card outline-none transition placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-ring/30 [&::-webkit-search-cancel-button]:hidden"
+        className={cn(
+          "w-full rounded-md border pl-9 text-sm outline-none transition-[background-color,border-color,box-shadow] placeholder:text-muted-foreground focus:border-primary focus:ring-3 focus:ring-ring/25 [&::-webkit-search-cancel-button]:hidden",
+          prominent
+            ? "h-12 border-input bg-card pr-28 text-[0.95rem]"
+            : "h-10 border-transparent bg-muted pr-9 focus:bg-card",
+        )}
       />
       {query && (
         <button
@@ -120,7 +138,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
             setQuery("");
             inputRef.current?.focus();
           }}
-          className="absolute top-1/2 right-[5.5rem] -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted"
+          className={cn("absolute top-1/2 -translate-y-1/2 rounded-sm p-1 text-muted-foreground hover:bg-accent hover:text-foreground", prominent ? "right-[5.75rem]" : "right-2")}
           aria-label="Clear search"
         >
           <XIcon className="size-3.5" />
@@ -128,7 +146,11 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
       )}
       <button
         type="submit"
-        className="absolute top-1/2 right-1.5 h-8 -translate-y-1/2 rounded-lg bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+        className={
+          prominent
+            ? "absolute top-1/2 right-1.5 h-9 -translate-y-1/2 rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            : "sr-only"
+        }
       >
         Search
       </button>
@@ -137,7 +159,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
         <ul
           id={listId}
           role="listbox"
-          className="absolute inset-x-0 top-full z-50 mt-2 overflow-hidden rounded-xl border bg-popover p-1.5 shadow-elevated"
+          className="absolute inset-x-0 top-full z-50 mt-1.5 overflow-hidden rounded-lg border bg-popover p-1 shadow-elevated"
         >
           {suggestions.map((s, index) => (
             <li
@@ -151,7 +173,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
               }}
               onMouseEnter={() => setActive(index)}
               className={cn(
-                "flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm",
+                "flex cursor-pointer items-center gap-2.5 rounded-md px-2.5 py-2 text-sm",
                 index === active && "bg-accent",
               )}
             >
@@ -161,7 +183,7 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
                 <TrendingUpIcon className="size-4 text-muted-foreground" aria-hidden />
               )}
               <span className="flex-1 truncate capitalize">{s.value}</span>
-              <span className="text-[0.68rem] text-muted-foreground">{s.recent ? "Recent" : "Popular"}</span>
+              <span className="text-xs text-muted-foreground">{s.recent ? "Recent" : "Popular"}</span>
             </li>
           ))}
         </ul>
@@ -170,6 +192,20 @@ export function SearchBar({ className, autoFocus = false }: { className?: string
   );
 }
 
-export function SearchBarFallback({ className }: { className?: string }) {
-  return <div className={cn("h-11 w-full rounded-xl border bg-card shadow-card", className)} />;
+export function SearchBarFallback({
+  className,
+  variant = "compact",
+}: {
+  className?: string;
+  variant?: "compact" | "prominent";
+}) {
+  return (
+    <div
+      className={cn(
+        "w-full rounded-md border",
+        variant === "prominent" ? "h-12 border-input bg-card" : "h-10 border-transparent bg-muted",
+        className,
+      )}
+    />
+  );
 }

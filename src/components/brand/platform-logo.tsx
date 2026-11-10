@@ -6,8 +6,8 @@ const SIZES = {
   xs: "size-4 rounded-[4px]",
   sm: "size-5 rounded-md",
   md: "size-7 rounded-lg",
-  lg: "size-10 rounded-xl",
-  xl: "size-14 rounded-2xl",
+  lg: "size-10 rounded-md",
+  xl: "size-14 rounded-lg",
 } as const;
 
 const PIXELS = { xs: 16, sm: 20, md: 28, lg: 40, xl: 56 } as const;

@@ -57,7 +57,7 @@ async function CartContent() {
         description={`${pluralize(cart.itemCount, "item")} across ${pluralize(cart.groups.length, "platform")}`}
       />
 
-      <div className="flex items-start gap-3 rounded-2xl border border-primary/20 bg-secondary/60 p-4 text-sm">
+      <div className="flex items-start gap-3 rounded-lg border border-primary/20 bg-secondary/60 p-4 text-sm">
         <InfoIcon className="mt-0.5 size-4.5 shrink-0 text-primary" aria-hidden />
         <p className="text-secondary-foreground">
           USC doesn&apos;t take payments. You place each order on the platform&apos;s own site or app — use{" "}
@@ -73,7 +73,7 @@ async function CartContent() {
         </div>
 
         <aside className="space-y-3 lg:sticky lg:top-24" aria-label="Order summary">
-          <div className="rounded-2xl border bg-card p-5 shadow-card">
+          <div className="rounded-lg border bg-card p-5 shadow-card">
             <h2 className="font-semibold">Summary</h2>
             <dl className="mt-4 space-y-2.5 text-sm">
               {cart.groups.map((group) => (
@@ -93,7 +93,7 @@ async function CartContent() {
               )}
               <div className="flex items-baseline justify-between border-t pt-2.5">
                 <dt className="font-semibold">Estimated total</dt>
-                <dd className="font-heading text-xl font-bold tabular">{formatPrice(cart.total)}</dd>
+                <dd className="price text-2xl">{formatPrice(cart.total)}</dd>
               </div>
               {orderedCount > 0 && (
                 <div className="flex justify-between text-xs text-muted-foreground">
@@ -111,7 +111,7 @@ async function CartContent() {
             </p>
           </div>
           {cart.pendingCount === 0 && (
-            <p className="flex items-center gap-2 rounded-xl bg-success-subtle px-4 py-3 text-sm font-medium text-success">
+            <p className="flex items-center gap-2 rounded-md bg-success-subtle px-4 py-3 text-sm font-medium text-success">
               <CheckCircle2Icon className="size-4" aria-hidden /> Everything in your cart is purchased.
             </p>
           )}
@@ -124,7 +124,7 @@ async function CartContent() {
 function PlatformGroup({ group }: { group: CartPlatformGroup }) {
   const meta = PLATFORMS[group.platform];
   return (
-    <section className="rounded-2xl border bg-card shadow-card" aria-labelledby={`group-${group.platform}`}>
+    <section className="rounded-lg border bg-card shadow-card" aria-labelledby={`group-${group.platform}`}>
       <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3 sm:px-5">
         <div className="flex items-center gap-3">
           <PlatformLogo platform={group.platform} size="lg" />
@@ -161,10 +161,10 @@ function CartSkeleton() {
       <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
         <div className="space-y-4">
           {Array.from({ length: 2 }, (_, i) => (
-            <div key={i} className="h-56 animate-pulse rounded-2xl bg-muted" />
+            <div key={i} className="h-56 animate-pulse rounded-lg bg-muted" />
           ))}
         </div>
-        <div className="h-72 animate-pulse rounded-2xl bg-muted" />
+        <div className="h-72 animate-pulse rounded-lg bg-muted" />
       </div>
     </div>
   );

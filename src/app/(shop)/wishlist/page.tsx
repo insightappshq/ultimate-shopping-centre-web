@@ -56,7 +56,7 @@ async function WishlistContent() {
           const discount = item.mrp && item.mrp > item.price ? Math.round(((item.mrp - item.price) / item.mrp) * 100) : 0;
           return (
             <li key={item.id}>
-              <article className="relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-card transition-shadow hover:shadow-elevated">
+              <article className="relative flex h-full flex-col overflow-hidden rounded-lg border bg-card shadow-card transition-shadow hover:shadow-elevated">
                 <div className="relative aspect-square bg-white">
                   <ProductImage src={item.image} alt={item.name} />
                   <span className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 rounded-full bg-card/95 py-0.5 pr-2 pl-0.5 text-[0.68rem] font-medium shadow-sm">
@@ -66,7 +66,7 @@ async function WishlistContent() {
                 </div>
                 <div className="flex flex-1 flex-col gap-2 p-3.5">
                   <div className="min-w-0">
-                    {item.brand && <p className="truncate text-[0.7rem] font-semibold tracking-wide text-muted-foreground uppercase">{item.brand}</p>}
+                    {item.brand && <p className="truncate text-[0.7rem] font-semibold text-muted-foreground">{item.brand}</p>}
                     <h2 className="line-clamp-2 text-sm font-medium">{item.name}</h2>
                     {item.packSize && <p className="text-xs text-muted-foreground">{item.packSize}</p>}
                   </div>

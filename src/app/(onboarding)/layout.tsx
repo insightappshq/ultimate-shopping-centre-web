@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export default function OnboardingLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-dvh flex-col bg-gradient-to-b from-secondary/60 via-background to-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <header className="container-page flex h-16 items-center justify-between">
         <Logo href="/home" />
         <form action={signOutAction}>

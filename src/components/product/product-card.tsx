@@ -17,37 +17,47 @@ export interface CardState {
   cartKeys: Set<string>;
 }
 
-function CardShell({
+/**
+ * Flat product tile. Hierarchy, top to bottom: photo → name and pack → price
+ * (the hero) → where it's from → what it costs elsewhere. One small action
+ * per tile; the whole tile links to the product page.
+ */
+function Tile({
   href,
   image,
   name,
-  overlay,
-  topBadge,
-  children,
   unavailable,
+  wishlist,
+  children,
 }: {
   href: string;
   image: string | null;
   name: string;
-  overlay?: React.ReactNode;
-  topBadge?: React.ReactNode;
-  children: React.ReactNode;
   unavailable?: boolean;
+  wishlist: React.ReactNode;
+  children: React.ReactNode;
 }) {
   return (
-    <article className="group/card relative flex h-full flex-col overflow-hidden rounded-2xl border bg-card shadow-card transition-shadow hover:shadow-elevated">
-      <div className="relative aspect-square bg-white">
+    <article className="group/tile relative flex h-full flex-col rounded-lg border bg-card transition-colors hover:border-foreground/25 focus-within:border-foreground/25">
+      <div className="relative aspect-[5/4] overflow-hidden rounded-t-lg border-b border-border/60 bg-white">
         <ProductImage
           src={image}
           alt={name}
-          className={cn("transition-transform duration-300 group-hover/card:scale-[1.03]", unavailable && "opacity-50 grayscale")}
+          sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 240px"
+          className={cn("p-3 transition-transform duration-300 group-hover/tile:scale-[1.02]", unavailable && "opacity-40 grayscale")}
         />
-        {topBadge && <div className="absolute top-2.5 left-2.5 flex flex-col gap-1">{topBadge}</div>}
-        {overlay && <div className="absolute top-2.5 right-2.5 z-10">{overlay}</div>}
+        <div className="absolute top-1.5 right-1.5 z-10 opacity-100 transition-opacity sm:opacity-0 sm:group-hover/tile:opacity-100 sm:group-focus-within/tile:opacity-100 [&:has([aria-pressed=true])]:opacity-100">
+          {wishlist}
+        </div>
       </div>
-      <div className="flex flex-1 flex-col gap-2 p-3 sm:p-3.5">{children}</div>
-      {/* Whole card is clickable; interactive children sit above via z-10. */}
-      <Link href={href} className="absolute inset-0 rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring" aria-label={name} prefetch={false} />
+      <div className="flex flex-1 flex-col p-3">{children}</div>
+      {/* Whole tile is the link; interactive controls sit above it (z-10). */}
+      <Link
+        href={href}
+        prefetch={false}
+        aria-label={name}
+        className="absolute inset-0 rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-ring"
+      />
     </article>
   );
 }
@@ -55,9 +65,39 @@ function CardShell({
 function Title({ brand, name, quantity }: { brand: string | null; name: string; quantity: string | null }) {
   return (
     <div className="min-w-0">
-      {brand && <p className="truncate text-[0.7rem] font-semibold tracking-wide text-muted-foreground uppercase">{brand}</p>}
-      <h3 className="line-clamp-2 text-sm leading-snug font-medium">{name}</h3>
+      <h3 className="line-clamp-2 text-sm leading-snug font-medium text-foreground">
+        {brand && !name.toLowerCase().startsWith(brand.toLowerCase()) && (
+          <span className="text-muted-foreground">{brand} </span>
+        )}
+        {name}
+      </h3>
       {quantity && <p className="mt-0.5 text-xs text-muted-foreground">{quantity}</p>}
+    </div>
+  );
+}
+
+function PriceRow({
+  offer,
+  inCart,
+}: {
+  offer: Offer;
+  inCart: boolean;
+}) {
+  return (
+    <div className="mt-auto flex items-end justify-between gap-2 pt-3">
+      <div className="min-w-0">
+        <Price price={offer.price} mrp={offer.mrp} muted={!offer.available} />
+        <div className="mt-0.5 flex h-4 items-center gap-2">
+          {offer.available ? (
+            <DiscountBadge percent={offer.discountPercent} />
+          ) : (
+            <span className="text-xs font-medium text-destructive">Out of stock</span>
+          )}
+        </div>
+      </div>
+      <div className="relative z-10">
+        <AddToCartButton product={toSnapshot(offer)} inCart={inCart} disabled={!offer.available} compact />
+      </div>
     </div>
   );
 }
@@ -73,129 +113,84 @@ export function ProductGroupCard({
 }) {
   const { best } = group;
   const others = group.offers.filter((o) => o.listingId !== best.listingId);
-  const savings = group.offers.length > 1 ? group.highestPrice - best.price : 0;
+  const saving = group.highestPrice - best.price;
 
   return (
-    <CardShell
+    <Tile
       href={productHref(best.platform, best.productId, query)}
       image={group.image}
       name={group.name}
       unavailable={!best.available}
-      topBadge={
-        <>
-          {group.offers.length > 1 && savings > 0 && (
-            <span className="rounded-md bg-deal px-1.5 py-0.5 text-[0.68rem] font-bold text-deal-foreground shadow-sm">
-              Save {formatPrice(savings)}
-            </span>
-          )}
-          <DiscountBadge percent={best.discountPercent} />
-        </>
-      }
-      overlay={<WishlistButton product={toSnapshot(best)} saved={state.savedKeys.has(best.key)} />}
+      wishlist={<WishlistButton product={toSnapshot(best)} saved={state.savedKeys.has(best.key)} />}
     >
       <Title brand={group.brand} name={group.name} quantity={group.quantity} />
 
-      <div className="mt-auto space-y-2">
-        <div className="flex items-end justify-between gap-2">
-          <div>
-            <p className="flex items-center gap-1 text-[0.68rem] font-medium text-muted-foreground">
-              <PlatformLogo platform={best.platform} size="xs" />
-              {group.offers.length > 1 ? "Best on" : "On"} {PLATFORMS[best.platform].shortName}
-            </p>
-            <Price price={best.price} mrp={best.mrp} size="md" />
-          </div>
-          <Rating rating={group.rating} />
-        </div>
+      <PriceRow offer={best} inCart={state.cartKeys.has(best.key)} />
 
-        {others.length > 0 && (
-          <ul className="space-y-1 rounded-lg bg-muted/60 p-2 text-xs">
-            {others.slice(0, 2).map((offer) => (
-              <li key={offer.listingId} className="flex items-center justify-between gap-2">
-                <span className="flex min-w-0 items-center gap-1.5">
-                  <PlatformLogo platform={offer.platform} size="xs" />
-                  <span className="truncate text-muted-foreground">{PLATFORMS[offer.platform].shortName}</span>
-                </span>
-                <span className={cn("font-medium tabular", !offer.available && "text-muted-foreground line-through")}>
-                  {formatPrice(offer.price)}
-                </span>
-              </li>
-            ))}
-            {others.length > 2 && (
-              <li className="text-[0.68rem] font-medium text-primary">+{others.length - 2} more platforms</li>
-            )}
-          </ul>
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-dashed pt-2.5 text-xs">
+        <span className="flex min-w-0 items-center gap-1.5 font-medium">
+          <PlatformLogo platform={best.platform} size="xs" />
+          <span className="truncate">{PLATFORMS[best.platform].shortName}</span>
+        </span>
+        {saving >= 1 ? (
+          <span className="shrink-0 font-semibold text-success tabular">Saves {formatPrice(saving)}</span>
+        ) : (
+          <Eta eta={best.eta} className="shrink-0" />
         )}
-
-        <div className="relative z-10">
-          <AddToCartButton
-            product={toSnapshot(best)}
-            inCart={state.cartKeys.has(best.key)}
-            disabled={!best.available}
-            variant={state.cartKeys.has(best.key) ? "secondary" : "default"}
-            className="w-full"
-            label={best.available ? "Add to cart" : "Out of stock"}
-          />
-        </div>
       </div>
-    </CardShell>
+
+      {others.length > 0 && (
+        <ul className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs" aria-label="Also available on">
+          {others.slice(0, 3).map((offer) => (
+            <li key={offer.listingId} className="flex items-center gap-1 text-muted-foreground">
+              <PlatformLogo platform={offer.platform} size="xs" />
+              <span className={cn("tabular", !offer.available && "line-through")}>{formatPrice(offer.price)}</span>
+            </li>
+          ))}
+          {others.length > 3 && <li className="text-muted-foreground">+{others.length - 3}</li>}
+        </ul>
+      )}
+    </Tile>
   );
 }
 
 export function OfferCard({ offer, query, state }: { offer: Offer; query?: string; state: CardState }) {
   return (
-    <CardShell
+    <Tile
       href={productHref(offer.platform, offer.productId, query)}
       image={offer.image}
       name={offer.name}
       unavailable={!offer.available}
-      topBadge={<DiscountBadge percent={offer.discountPercent} />}
-      overlay={<WishlistButton product={toSnapshot(offer)} saved={state.savedKeys.has(offer.key)} />}
+      wishlist={<WishlistButton product={toSnapshot(offer)} saved={state.savedKeys.has(offer.key)} />}
     >
-      <div className="flex items-center justify-between gap-2">
-        <span className="flex items-center gap-1.5 text-xs font-medium">
-          <PlatformLogo platform={offer.platform} size="xs" />
-          {PLATFORMS[offer.platform].shortName}
-        </span>
-        <Eta eta={offer.eta} />
-      </div>
       <Title brand={offer.brand} name={offer.name} quantity={offer.quantity} />
-      <div className="mt-auto space-y-2">
-        <div className="flex items-end justify-between gap-2">
-          <div>
-            <Price price={offer.price} mrp={offer.mrp} />
-            {offer.unitPrice && (
-              <p className="text-[0.68rem] text-muted-foreground tabular">
-                {formatPrice(offer.unitPrice.value)} / {offer.unitPrice.per}
-              </p>
-            )}
-          </div>
+      <PriceRow offer={offer} inCart={state.cartKeys.has(offer.key)} />
+      <div className="mt-2.5 flex items-center justify-between gap-2 border-t border-dashed pt-2.5 text-xs">
+        <span className="flex min-w-0 items-center gap-1.5 font-medium">
+          <PlatformLogo platform={offer.platform} size="xs" />
+          <span className="truncate">{PLATFORMS[offer.platform].shortName}</span>
+        </span>
+        {offer.unitPrice ? (
+          <span className="shrink-0 text-muted-foreground tabular">
+            {formatPrice(offer.unitPrice.value)}/{offer.unitPrice.per}
+          </span>
+        ) : (
           <Rating rating={offer.rating} />
-        </div>
-        <div className="relative z-10">
-          <AddToCartButton
-            product={toSnapshot(offer)}
-            inCart={state.cartKeys.has(offer.key)}
-            disabled={!offer.available}
-            variant={state.cartKeys.has(offer.key) ? "secondary" : "default"}
-            className="w-full"
-            label={offer.available ? "Add to cart" : "Out of stock"}
-          />
-        </div>
+        )}
       </div>
-    </CardShell>
+    </Tile>
   );
 }
 
 export function ProductCardSkeleton() {
   return (
-    <div className="overflow-hidden rounded-2xl border bg-card">
-      <div className="aspect-square animate-pulse bg-muted" />
-      <div className="space-y-2 p-3.5">
-        <div className="h-2.5 w-1/3 animate-pulse rounded bg-muted" />
-        <div className="h-3.5 w-full animate-pulse rounded bg-muted" />
-        <div className="h-3.5 w-2/3 animate-pulse rounded bg-muted" />
-        <div className="h-5 w-1/2 animate-pulse rounded bg-muted" />
-        <div className="h-8 w-full animate-pulse rounded-lg bg-muted" />
+    <div className="flex flex-col rounded-lg border bg-card" aria-hidden>
+      <div className="aspect-[5/4] animate-pulse rounded-t-lg bg-muted" />
+      <div className="space-y-2 p-3">
+        <div className="h-3.5 w-full animate-pulse rounded-sm bg-muted" />
+        <div className="h-3.5 w-2/3 animate-pulse rounded-sm bg-muted" />
+        <div className="h-6 w-1/2 animate-pulse rounded-sm bg-muted" />
+        <div className="h-3 w-full animate-pulse rounded-sm bg-muted" />
       </div>
     </div>
   );

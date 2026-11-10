@@ -13,8 +13,8 @@ export const metadata: Metadata = { title: "Set up your profile", robots: { inde
 export default function OnboardingPage({ searchParams }: PageProps<"/onboarding">) {
   return (
     <div className="w-full max-w-lg">
-      <div className="rounded-3xl border bg-card p-6 shadow-elevated sm:p-8">
-        <span className="flex size-11 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+      <div className="rounded-lg border bg-card p-6 shadow-elevated sm:p-8">
+        <span className="flex size-11 items-center justify-center rounded-md bg-primary text-primary-foreground">
           <UserRoundCheckIcon className="size-5" aria-hidden />
         </span>
         <h1 className="mt-5 text-2xl font-bold sm:text-3xl">Let&apos;s set up your profile</h1>
@@ -23,7 +23,7 @@ export default function OnboardingPage({ searchParams }: PageProps<"/onboarding"
           you.
         </p>
         <div className="mt-8">
-          <Suspense fallback={<div className="h-72 animate-pulse rounded-2xl bg-muted" />}>
+          <Suspense fallback={<div className="h-72 animate-pulse rounded-lg bg-muted" />}>
             <OnboardingContent searchParams={searchParams} />
           </Suspense>
         </div>

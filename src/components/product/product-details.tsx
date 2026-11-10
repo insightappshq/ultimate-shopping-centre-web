@@ -74,7 +74,7 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
   const groups = groupSpecs([...glance, ...info.specifications]);
 
   return (
-    <section aria-labelledby="details-heading" className="grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+    <section aria-labelledby="details-heading" className="grid gap-8 lg:grid-cols-[1.1fr_1fr] lg:gap-12">
       <div className="space-y-5">
         <SectionHeader title={<span id="details-heading">About this product</span>} className="mb-0" />
 
@@ -108,28 +108,26 @@ export function ProductDetails({ product }: { product: ProductDetail }) {
         )}
 
         {info.disclaimer && (
-          <p className="flex gap-2 rounded-xl bg-muted/60 p-3 text-xs leading-relaxed text-muted-foreground">
+          <p className="flex gap-2 border-l-2 pl-3 text-xs leading-relaxed text-muted-foreground">
             <InfoIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
             {info.disclaimer}
           </p>
         )}
       </div>
 
-      <div className="space-y-4">
-        {groups.map(([group, specs]) => (
-          <div key={group} className="overflow-hidden rounded-2xl border bg-card text-sm shadow-card">
-            <h3 className="border-b bg-muted/50 px-4 py-2.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-              {group}
-            </h3>
-            <dl className="divide-y">
+      <div className="self-start overflow-hidden rounded-lg border bg-card text-sm">
+        {groups.map(([group, specs], index) => (
+          <section key={group} aria-label={group} className={index > 0 ? "border-t" : undefined}>
+            <h3 className="bg-muted/50 px-4 py-2 text-[0.8rem] font-semibold">{group}</h3>
+            <dl className="divide-y divide-border/70">
               {specs.map((spec) => (
-                <div key={spec.label} className="grid grid-cols-[9rem_1fr] gap-3 px-4 py-2.5 sm:grid-cols-[11rem_1fr]">
-                  <dt className="font-medium text-muted-foreground">{spec.label}</dt>
+                <div key={spec.label} className="grid grid-cols-[9rem_1fr] gap-3 px-4 py-2 sm:grid-cols-[11rem_1fr]">
+                  <dt className="text-muted-foreground">{spec.label}</dt>
                   <dd className="break-words">{spec.value}</dd>
                 </div>
               ))}
             </dl>
-          </div>
+          </section>
         ))}
       </div>
     </section>

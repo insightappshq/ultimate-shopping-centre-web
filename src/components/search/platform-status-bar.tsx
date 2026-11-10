@@ -23,11 +23,11 @@ export function PlatformStatusBar({ statuses }: { statuses: PlatformStatus[] }) 
         <li
           key={status.platform}
           className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-full border bg-card py-1 pr-2.5 pl-1 text-xs",
+            "flex h-7 shrink-0 items-center gap-1.5 rounded-md border bg-card pr-2.5 pl-1.5 text-xs",
             !status.ok && "border-warning/40 bg-warning-subtle",
           )}
         >
-          <PlatformLogo platform={status.platform} size="xs" className="rounded-full" />
+          <PlatformLogo platform={status.platform} size="xs" />
           <span className="font-medium">{PLATFORMS[status.platform].shortName}</span>
           {status.ok ? (
             <span className="text-muted-foreground tabular">{status.count}</span>

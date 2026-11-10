@@ -105,39 +105,42 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
   const snapshot = toSnapshot(product);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-12">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-10">
       <ProductGallery images={product.images} name={product.name} />
 
-      <div className="space-y-6">
-        <div className="space-y-3">
-          <span className="inline-flex items-center gap-2 rounded-full border bg-card py-1 pr-3 pl-1 text-xs font-medium shadow-card">
-            <PlatformLogo platform={product.platform} size="sm" className="rounded-full" />
-            Listed on {meta.name}
-          </span>
-          {product.brand && (
-            <p className="text-sm font-semibold tracking-wide text-primary uppercase">{product.brand}</p>
-          )}
-          <h1 className="text-2xl leading-tight font-bold text-balance sm:text-3xl">{product.name}</h1>
+      <div className="space-y-5">
+        <div className="space-y-2.5">
+          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+            <PlatformLogo platform={product.platform} size="xs" />
+            {meta.name}
+            {product.brand && (
+              <>
+                <span aria-hidden className="h-3 w-px bg-border" />
+                <span className="font-medium text-foreground">{product.brand}</span>
+              </>
+            )}
+          </p>
+          <h1 className="text-[1.75rem] text-balance sm:text-[2rem]">{product.name}</h1>
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
             <FoodMark labels={product.info.dietaryLabels} />
-            {product.quantity && <span className="rounded-md bg-muted px-2 py-0.5 font-medium">{product.quantity}</span>}
+            {product.quantity && <span className="font-medium">{product.quantity}</span>}
             <Rating rating={product.rating} count={product.ratingCount} />
             <StockStatus available={product.available} inventory={product.inventory} />
             <Eta eta={product.eta ?? meta.typicalEta} />
           </div>
         </div>
 
-        <div className="rounded-2xl border bg-card p-5 shadow-card">
+        <div className="rounded-lg border bg-card p-5">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-medium text-muted-foreground">Price on {meta.shortName}</p>
-              <div className="mt-1 flex items-center gap-2">
+              <p className="text-xs text-muted-foreground">Price on {meta.shortName}</p>
+              <div className="mt-1.5 flex items-baseline gap-2.5">
                 <Price price={product.price} mrp={product.mrp} size="xl" />
                 <DiscountBadge percent={product.discountPercent} className="text-xs" />
               </div>
               {product.unitPrice && (
                 <p className="mt-1 text-xs text-muted-foreground tabular">
-                  {formatPrice(product.unitPrice.value)} per {product.unitPrice.per} · inclusive of all taxes
+                  {formatPrice(product.unitPrice.value)} per {product.unitPrice.per}, inclusive of all taxes
                 </p>
               )}
             </div>
@@ -162,7 +165,7 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
           )}
         </div>
 
-        <Suspense fallback={<div className="h-20 animate-pulse rounded-xl bg-muted" />}>
+        <Suspense fallback={<div className="h-20 animate-pulse rounded-md bg-muted" />}>
           <HeroDeals platform={platform} id={id} q={q} />
         </Suspense>
 
@@ -174,7 +177,7 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
                 <Link
                   key={variant.listingId}
                   href={productHref(variant.platform, variant.productId, q)}
-                  className="rounded-xl border bg-card px-3 py-2 text-sm transition hover:border-primary"
+                  className="rounded-md border bg-card px-3 py-2 text-sm transition hover:border-primary"
                 >
                   <span className="block font-medium">{variant.quantity ?? variant.name}</span>
                   <span className="text-xs text-muted-foreground tabular">{formatPrice(variant.price)}</span>
@@ -186,7 +189,7 @@ export async function ProductHero({ params, searchParams }: ProductRouteProps) {
 
         <div className="flex flex-col gap-2 text-xs text-muted-foreground sm:flex-row sm:gap-5">
           <span className="inline-flex items-center gap-1.5">
-            <MapPinIcon className="size-3.5" aria-hidden /> Prices for {location.label} · {location.pincode}
+            <MapPinIcon className="size-3.5" aria-hidden /> Prices for {location.label}, {location.pincode}
           </span>
           <span className="inline-flex items-center gap-1.5">
             <ShieldCheckIcon className="size-3.5" aria-hidden /> You pay securely on {meta.name}
@@ -250,12 +253,12 @@ export async function ComparisonSection({ params, searchParams }: ProductRoutePr
 export function ProductHeroSkeleton() {
   return (
     <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-      <div className="aspect-square animate-pulse rounded-2xl bg-muted" />
+      <div className="aspect-square animate-pulse rounded-lg bg-muted" />
       <div className="space-y-4">
-        <div className="h-6 w-40 animate-pulse rounded-full bg-muted" />
+        <div className="h-5 w-40 animate-pulse rounded-sm bg-muted" />
         <div className="h-9 w-full animate-pulse rounded bg-muted" />
         <div className="h-9 w-2/3 animate-pulse rounded bg-muted" />
-        <div className="h-48 animate-pulse rounded-2xl bg-muted" />
+        <div className="h-48 animate-pulse rounded-lg bg-muted" />
       </div>
     </div>
   );
@@ -267,7 +270,7 @@ export function ComparisonSkeleton() {
       <div className="h-6 w-72 animate-pulse rounded bg-muted" />
       <p className="text-sm text-muted-foreground">Checking prices on every platform…</p>
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="h-20 animate-pulse rounded-2xl bg-muted" />
+        <div key={i} className="h-20 animate-pulse rounded-lg bg-muted" />
       ))}
     </div>
   );
